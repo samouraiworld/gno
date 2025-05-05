@@ -80,9 +80,9 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 	dao.initRenderingRouter()
 
 	if conf.SetProfileString != nil {
-		conf.SetProfileString("DisplayName", conf.Name)
-		conf.SetProfileString("Bio", conf.Description)
-		conf.SetProfileString("Avatar", conf.ImageURI)
+		cross(conf.SetProfileString)("DisplayName", conf.Name)
+		cross(conf.SetProfileString)("Bio", conf.Description)
+		cross(conf.SetProfileString)("Avatar", conf.ImageURI)
 	}
 
 	if !conf.NoDefaultHandlers {
