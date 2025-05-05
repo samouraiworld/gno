@@ -11,7 +11,7 @@ import (
 
 // ADD MEMBER
 
-const MsgAddMemberKind = "gno.land/p/zenao/basedao.AddMember"
+const MsgAddMemberKind = "gno.land/p/samourai/basedao.AddMember"
 
 type MsgAddMember struct {
 	Address std.Address
@@ -38,7 +38,7 @@ func NewAddMemberMsg(payload *MsgAddMember) daokit.ExecutableMessage {
 
 // REMOVE MEMBER
 
-const MsgRemoveMemberKind = "gno.land/p/zenao/basedao.RemoveMember"
+const MsgRemoveMemberKind = "gno.land/p/samourai/basedao.RemoveMember"
 
 func NewRemoveMemberHandler(dao *DAOPrivate) daokit.MessageHandler {
 	return daokit.NewMessageHandler(MsgRemoveMemberKind, func(ipayload interface{}) {
@@ -56,7 +56,7 @@ func NewRemoveMemberMsg(address std.Address) daokit.ExecutableMessage {
 
 // ASSIGN ROLE
 
-const MsgAssignRoleKind = "gno.land/p/zenao/basedao.AssignRole"
+const MsgAssignRoleKind = "gno.land/p/samourai/basedao.AssignRole"
 
 type MsgAssignRole struct {
 	Address std.Address
@@ -83,7 +83,7 @@ func NewAssignRoleMsg(payload *MsgAssignRole) daokit.ExecutableMessage {
 
 // UNASSIGN ROLE
 
-const MsgUnassignRoleKind = "gno.land/p/zenao/basedao.UnassignRole"
+const MsgUnassignRoleKind = "gno.land/p/samourai/basedao.UnassignRole"
 
 type MsgUnassignRole struct {
 	Address std.Address
@@ -110,7 +110,7 @@ func NewUnassignRoleMsg(payload *MsgUnassignRole) daokit.ExecutableMessage {
 
 // EDIT PROFILE
 
-const MsgEditProfileKind = "gno.land/p/zenao/basedao.EditProfile"
+const MsgEditProfileKind = "gno.land/p/samourai/basedao.EditProfile"
 
 type msgEditProfile struct {
 	kv [][2]string

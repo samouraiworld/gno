@@ -72,6 +72,56 @@ func init() {
 		Condition: adminCond,
 		Handler:   daokit.NewExecuteLambdaHandler(),
 	})
+
+	resources := []daokit.Resource{
+		{
+			Condition: daocond.And(
+				daocond.And(
+					daocond.RoleThreshold(0.66, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
+					daocond.RoleThreshold(0.66, "Employee", memberStore.HasRole, memberStore.CountMembersWithRole),
+				),
+				daocond.RoleThreshold(0.33, "Freelance", memberStore.HasRole, memberStore.CountMembersWithRole),
+			),
+			Handler: NewChangeCEOHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.RoleCount(1, "Social Media Manager", memberStore.HasRole),
+			Handler:   NewNewPostHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.And(
+				daocond.RoleCount(1, "CEO", memberStore.HasRole),
+				daocond.RoleThreshold(0.3, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
+			),
+			Handler: NewNewStakeholderHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.And(
+				daocond.RoleCount(1, "CEO", memberStore.HasRole),
+				daocond.RoleThreshold(0.3, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
+			),
+			Handler: NewElectProjectLeadHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.RoleCount(1, "Media Team Leader", memberStore.HasRole),
+			Handler:   NewNewMediaProjectHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.RoleCount(1, "Tech Team Leader", memberStore.HasRole),
+			Handler:   NewNewTechProjectHandler(daoPrivate),
+		},
+		{
+			Condition: daocond.And(
+				daocond.RoleThreshold(0.66, "Leader", memberStore.HasRole, memberStore.CountMembersWithRole),
+				daocond.RoleCount(1, "Accountability", memberStore.HasRole),
+			),
+			Handler: NewEditPayrollsHandler(daoPrivate),
+		},
+	}
+
+	for _, resource := range resources {
+		daoPrivate.Core.Resources.Set(&resource)
+	}
 }
 
 func Vote(proposalID uint64, vote daocond.Vote) {

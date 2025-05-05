@@ -66,7 +66,7 @@ func (g *genericMessageHandler) Type() string {
 	return g.kind
 }
 
-const MsgExecuteLambdaKind = "gno.land/p/zenao/daokit.ExecuteLambda"
+const MsgExecuteLambdaKind = "gno.land/p/samourai/daokit.ExecuteLambda"
 
 func NewExecuteLambdaHandler() MessageHandler {
 	return NewMessageHandler(MsgExecuteLambdaKind, func(i interface{}) {
@@ -82,7 +82,7 @@ func NewExecuteLambdaMsg(cb func()) ExecutableMessage {
 	return NewMessage(MsgExecuteLambdaKind, cb)
 }
 
-const MsgInstantExecuteKind = "gno.land/p/zenao/daokit.InstantExecute"
+const MsgInstantExecuteKind = "gno.land/p/samourai/daokit.InstantExecute"
 
 type msgInstantExecute struct {
 	dao DAO
