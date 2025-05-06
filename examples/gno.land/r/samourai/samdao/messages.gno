@@ -3,10 +3,13 @@ package samdao
 import (
 	"errors"
 	"std"
+	"strings"
 
+	"gno.land/p/demo/blog"
 	"gno.land/p/demo/ufmt"
 	"gno.land/p/samourai/basedao"
 	"gno.land/p/samourai/daokit"
+	"gno.land/p/samourai/project_manager"
 )
 
 // CHANGE CEO
@@ -22,11 +25,22 @@ func (m *MsgChangeCEO) String() string {
 
 func NewChangeCEOHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
 	return daokit.NewMessageHandler(MsgChangeCEOKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgChangeCEO)
+		msg, ok := ipayload.(*MsgChangeCEO)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		targetIsCEO := dao.Members.HasRole(msg.NewCEO.String(), "CEO")
+		if targetIsCEO {
+			panic("target is already CEO")
+		}
+
+		ceo := dao.Members.GetMembersWithRole("CEO")
+		if len(ceo) != 1 {
+			panic("there must be exactly one CEO")
+		}
+
+		dao.Members.RemoveRoleFromMember(ceo[0], "CEO")
+		dao.Members.AddRoleToMember(msg.NewCEO.String(), "CEO")
 	})
 }
 
@@ -39,26 +53,37 @@ func NewChangeCEOMsg(newCEO std.Address) daokit.ExecutableMessage {
 const MsgNewPostKind = "gno.land/r/samourai/samdao.NewPost"
 
 type MsgNewPost struct {
+	Slug    string
 	Title   string
-	Content string
+	Body    string
+	Authors []string
+	Tags    []string
+	PubDate string
 }
 
 func (m *MsgNewPost) String() string {
 	return ufmt.Sprintf("New post: %s", m.Title)
 }
 
-func NewNewPostHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+func NewNewPostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
 	return daokit.NewMessageHandler(MsgNewPostKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgNewPost)
+		msg, ok := ipayload.(*MsgNewPost)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		blogTarget.NewPost(std.CurrentRealm().Address(), msg.Slug, msg.Title, msg.Body, msg.PubDate, msg.Authors, msg.Tags)
 	})
 }
 
-func NewNewPostMsg(title string, content string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewPostKind, &MsgNewPost{Title: title, Content: content})
+func NewNewPostMsg(slug, title, body, pubDate string, authors, tags []string) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewPostKind, &MsgNewPost{
+		Slug:    slug,
+		Title:   title,
+		Body:    body,
+		Authors: authors,
+		Tags:    tags,
+		PubDate: pubDate,
+	})
 }
 
 // NEW STAKEHOLDER
@@ -75,11 +100,11 @@ func (m *MsgNewStakeholder) String() string {
 
 func NewNewStakeholderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
 	return daokit.NewMessageHandler(MsgNewStakeholderKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgNewStakeholder)
+		msg, ok := ipayload.(*MsgNewStakeholder)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		dao.Members.AddRoleToMember(msg.Address.String(), "Stakeholder")
 	})
 }
 
@@ -89,55 +114,60 @@ func NewNewStakeholderMsg(address std.Address) daokit.ExecutableMessage {
 
 // ELECT PROJECT LEAD
 
-const MsgElectProjectLeadKind = "gno.land/r/samourai/samdao.ElectProjectLead"
+const MsgElectDivisionLeaderKind = "gno.land/r/samourai/samdao.ElectDivisionLeader"
 
-type MsgElectProjectLead struct {
-	ProjectID uint64
-	Address   std.Address
+type MsgElectDivisionLeader struct {
+	Division string
+	Address  std.Address
 }
 
-func (m *MsgElectProjectLead) String() string {
-	return ufmt.Sprintf("Elect project lead: %s", m.Address)
+func (m *MsgElectDivisionLeader) String() string {
+	return ufmt.Sprintf("Elect division %s leader: %s", m.Division, m.Address)
 }
 
-func NewElectProjectLeadHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgElectProjectLeadKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgElectProjectLead)
+func NewElectDivisionLeaderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgElectDivisionLeaderKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgElectDivisionLeader)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		division := strings.ToLower(msg.Division)
+		division = strings.ToUpper(division[:1]) + division[1:]
+		dao.Members.AddRoleToMember(msg.Address.String(), division+" Leader")
 	})
 }
 
-func NewElectProjectLeadMsg(projectID uint64, address std.Address) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgElectProjectLeadKind, &MsgElectProjectLead{ProjectID: projectID, Address: address})
+func NewElectDivisionLeaderMsg(division string, address std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgElectDivisionLeaderKind, &MsgElectDivisionLeader{Division: division, Address: address})
 }
 
 // NEW MEDIA PROJECT
 
-const MsgNewMediaProjectKind = "gno.land/r/samourai/samdao.NewMediaProject"
+const MsgNewProdProjectKind = "gno.land/r/samourai/samdao.NewProdProject"
 
-type MsgNewMediaProject struct {
-	Title string
+type MsgNewProdProject struct {
+	Title       string
+	Description string
+	Members     []std.Address
+	Tasks       []project_manager.Task
 }
 
-func (m *MsgNewMediaProject) String() string {
-	return ufmt.Sprintf("New media project: %s", m.Title)
+func (m *MsgNewProdProject) String() string {
+	return ufmt.Sprintf("New prod project: %s", m.Title)
 }
 
-func NewNewMediaProjectHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewMediaProjectKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgNewMediaProject)
+func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgNewProdProjectKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgNewProdProject)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		pmTarget.AddProject(msg.Title, msg.Description, project_manager.DivisionProd, msg.Members, msg.Tasks)
 	})
 }
 
-func NewNewMediaProjectMsg(title string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewMediaProjectKind, &MsgNewMediaProject{Title: title})
+func NewNewProdProjectMsg(title string) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewProdProjectKind, &MsgNewProdProject{Title: title})
 }
 
 // NEW TECH PROJECT
@@ -145,20 +175,24 @@ func NewNewMediaProjectMsg(title string) daokit.ExecutableMessage {
 const MsgNewTechProjectKind = "gno.land/r/samourai/samdao.NewTechProject"
 
 type MsgNewTechProject struct {
-	Title string
+	Title       string
+	Description string
+	Tasks       []project_manager.Task
+	Members     []std.Address
 }
 
 func (m *MsgNewTechProject) String() string {
 	return ufmt.Sprintf("New tech project: %s", m.Title)
 }
 
-func NewNewTechProjectHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
 	return daokit.NewMessageHandler(MsgNewTechProjectKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgNewTechProject)
+		msg, ok := ipayload.(*MsgNewTechProject)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+
+		pmTarget.AddProject(msg.Title, msg.Description, project_manager.DivisionTech, msg.Members, msg.Tasks)
 	})
 }
 

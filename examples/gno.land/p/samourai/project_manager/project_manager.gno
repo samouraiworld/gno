@@ -1,6 +1,8 @@
 package project_manager
 
 import (
+	"std"
+
 	"gno.land/p/demo/avl"
 )
 
@@ -40,14 +42,37 @@ func New() *ProjectManager {
 	}
 }
 
-// TODO: would be nice to have some validation like ensure the avl tree contains only std.Address
-func (pm *ProjectManager) AddProject(project *Project) {
-	_, ok := pm.Projects.Get(project.Name)
-	if ok {
-		panic("project already exists")
+func (pm *ProjectManager) AddProject(name string, description string, division string, members []std.Address, tasks []Task) {
+	if len(name) < 3 {
+		panic("name must be at least 3 characters long")
 	}
 
-	pm.Projects.Set(project.Name, project)
+	if len(description) < 15 {
+		panic("description must be at least 15 characters long")
+	}
+
+	if division != DivisionTech && division != DivisionProd {
+		panic("division must be either tech or prod")
+	}
+
+	membersTree := avl.NewTree()
+	for _, m := range members {
+		membersTree.Set(m.String(), struct{}{})
+	}
+
+	// TODO: would be nice to have some validation like ensure the avl tree contains only std.Address
+	tasksTree := avl.NewTree()
+	for _, t := range tasks {
+		tasksTree.Set(t.Name, &t)
+	}
+
+	pm.Projects.Set(name, &Project{
+		Name:        name,
+		Description: description,
+		Division:    division,
+		Members:     membersTree,
+		Tasks:       tasksTree,
+	})
 }
 
 func (pm *ProjectManager) GetProject(name string) *Project {
@@ -59,6 +84,7 @@ func (pm *ProjectManager) GetProject(name string) *Project {
 	return projectRaw.(*Project)
 }
 
+// TODO: would be nice to have some validation like ensure the avl tree contains only std.Address & recursively check the tasks
 func (pm *ProjectManager) EditProject(name string, project *Project) {
 	_, ok := pm.Projects.Get(name)
 	if !ok {
@@ -69,34 +95,45 @@ func (pm *ProjectManager) EditProject(name string, project *Project) {
 }
 
 func (pm *ProjectManager) DeleteProject(name string) {
-	project, ok := pm.Projects.Get(name)
+	_, ok := pm.Projects.Get(name)
 	if !ok {
 		panic("project not found")
 	}
 	pm.Projects.Remove(name)
 }
 
-func (pm *ProjectManager) AddTask(projectName string, task *Task) {
+func (pm *ProjectManager) AddTask(projectName string, name string, description string, members []std.Address) {
 	project, ok := pm.Projects.Get(projectName)
 	if !ok {
 		panic("project not found")
 	}
 
-	_, ok = project.(*Project).Tasks.Get(task.Name)
+	_, ok = project.(*Project).Tasks.Get(name)
 	if ok {
 		panic("task already exists")
 	}
 
-	project.(*Project).Tasks.Set(task.Name, task)
+	membersTree := avl.NewTree()
+	for _, m := range members {
+		membersTree.Set(m.String(), struct{}{})
+	}
+
+	project.(*Project).Tasks.Set(name, &Task{
+		Name:        name,
+		Description: description,
+		Members:     membersTree,
+		Status:      StatusTodo,
+	})
 }
 
+// TODO: would be nice to have some validation like ensure the avl tree contains only std.Address
 func (pm *ProjectManager) EditTask(projectName string, taskName string, task *Task) {
 	project, ok := pm.Projects.Get(projectName)
 	if !ok {
 		panic("project not found")
 	}
 
-	_, ok := project.(*Project).Tasks.Get(taskName)
+	_, ok = project.(*Project).Tasks.Get(taskName)
 	if !ok {
 		panic("task not found")
 	}
