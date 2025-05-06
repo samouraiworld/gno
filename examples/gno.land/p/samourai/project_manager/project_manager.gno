@@ -84,6 +84,15 @@ func (pm *ProjectManager) GetProject(name string) *Project {
 	return projectRaw.(*Project)
 }
 
+func (pm *ProjectManager) ListProjects() []*Project {
+	projects := []*Project{}
+	pm.Projects.Iterate("", "", func(key string, value interface{}) bool {
+		projects = append(projects, value.(*Project))
+		return false
+	})
+	return projects
+}
+
 // TODO: would be nice to have some validation like ensure the avl tree contains only std.Address & recursively check the tasks
 func (pm *ProjectManager) EditProject(name string, project *Project) {
 	_, ok := pm.Projects.Get(name)

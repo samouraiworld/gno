@@ -140,7 +140,3 @@ func Vote(proposalID uint64, vote daocond.Vote) {
 func Execute(proposalID uint64) {
 	DAO.Execute(proposalID)
 }
-
-func Render(path string) string {
-	return daoPrivate.Render(path)
-}
