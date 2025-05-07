@@ -195,6 +195,8 @@ func (d *DAOPrivate) ConfigResourcesView() string {
 		resource := value.(*daokit.Resource)
 		s += ufmt.Sprintf("- **Resource #%d: %s**\n\n", i, key)
 		// TODO: add doc to handler and print here
+		s += ufmt.Sprintf("  - **Name:** %s\n", resource.DisplayName)
+		s += ufmt.Sprintf("  - **Description:** %s\n", resource.Description)
 		s += ufmt.Sprintf("  - **Condition:** %s\n\n", resource.Condition.Render())
 		i += 1
 		return false
@@ -220,7 +222,10 @@ func (d *DAOPrivate) ProposalHistoryView() string {
 	s += ufmt.Sprintf("## Proposals 🗳️\n\n")
 	i := 1
 	d.Core.Proposals.Tree.Iterate("", "", func(key string, value interface{}) bool {
-		proposal := value.(*daokit.Proposal)
+		proposal, ok := value.(*daokit.Proposal)
+		if !ok {
+			panic("unexpected invalid proposal type")
+		}
 		id, err := seqid.FromString(key)
 		if err != nil {
 			panic(err)

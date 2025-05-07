@@ -10,8 +10,10 @@ type ResourcesStore struct {
 }
 
 type Resource struct {
-	Handler   MessageHandler
-	Condition daocond.Condition
+	Handler     MessageHandler
+	Condition   daocond.Condition
+	DisplayName string
+	Description string
 }
 
 func NewResourcesStore() *ResourcesStore {

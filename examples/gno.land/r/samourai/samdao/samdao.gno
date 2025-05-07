@@ -66,7 +66,7 @@ func init() {
 	As the world first production company integrating a tech team, with research & development on decentralized protocols, it gives birth to new models to empower artists, users, and humans.`
 
 	memberStore := basedao.NewMembersStore(initialRoles, initialMembers)
-	adminCond := daocond.And(daocond.RoleCount(1, "CEO", memberStore.HasRole), daocond.RoleThreshold(0.5, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole))
+	adminCond := daocond.And(daocond.RoleCount(1, "CEO", memberStore.HasRole), daocond.RoleThreshold(0.66, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole))
 
 	DAO, daoPrivate = basedao.New(&basedao.Config{
 		Name:             "Samouraï Coop",
@@ -77,12 +77,20 @@ func init() {
 		InitialCondition: adminCond,
 	})
 
-	daoPrivate.Core.Resources.Set(&daokit.Resource{
-		Condition: adminCond,
-		Handler:   daokit.NewExecuteLambdaHandler(),
-	})
-
 	resources := []daokit.Resource{
+		// Replace by a Member Count Condition = 1
+		{
+			Condition:   daocond.MembersThreshold(0.001, memberStore.IsMember, memberStore.MembersCount),
+			Handler:     daokit.NewInstantExecuteHandler(),
+			DisplayName: "Create, vote and execute a proposal",
+			Description: "This proposal allows you to create, vote and execute a proposal. It's meant to be used when the user can meet the proposal condition by himself.",
+		},
+		{
+			Condition:   adminCond,
+			Handler:     daokit.NewExecuteLambdaHandler(),
+			DisplayName: "Execute Any Proposal",
+			Description: "This proposal allows you to execute any message, it have to be carefully as it can break or modify in an unexpected way the DAO state.",
+		},
 		{
 			Condition: daocond.And(
 				daocond.And(
@@ -91,40 +99,54 @@ func init() {
 				),
 				daocond.RoleThreshold(0.33, "Freelance", memberStore.HasRole, memberStore.CountMembersWithRole),
 			),
-			Handler: NewChangeCEOHandler(daoPrivate),
+			Handler:     NewChangeCEOHandler(daoPrivate),
+			DisplayName: "Elect a new CEO",
+			Description: "This proposal allows you to elect a new CEO for the Samouraï Coop. The new CEO will be elected for 4 years and will be responsible for the strategic direction of the cooperative. The CEO can be revoked by vote of leaders, employees, and core members if a new strategic candidate emerges.",
 		},
 		{
-			Condition: daocond.RoleCount(1, "Social Manager", memberStore.HasRole),
-			Handler:   NewNewPostHandler(samBlog),
-		},
-		{
-			Condition: daocond.And(
-				daocond.RoleCount(1, "CEO", memberStore.HasRole),
-				daocond.RoleThreshold(0.3, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
-			),
-			Handler: NewNewStakeholderHandler(daoPrivate),
+			Condition:   daocond.RoleCount(1, "Social Manager", memberStore.HasRole),
+			Handler:     NewNewPostHandler(samBlog),
+			DisplayName: "New Post",
+			Description: "This proposal allows you to create a new post on the Samouraï Coop blog. The post will be published on the blog and will be visible to all users.",
 		},
 		{
 			Condition: daocond.And(
 				daocond.RoleCount(1, "CEO", memberStore.HasRole),
 				daocond.RoleThreshold(0.3, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
 			),
-			Handler: NewElectDivisionLeaderHandler(daoPrivate),
+			Handler:     NewNewStakeholderHandler(daoPrivate),
+			DisplayName: "New Stakeholder",
+			Description: "This proposal allows you to elect a new stakeholder for the Samouraï Coop. The stakeholder will be added to the list of stakeholders and will be able to vote on CEO scope decisions, including major investments and leadership elections, and receive a share of company net revenues.",
 		},
 		{
-			Condition: daocond.RoleCount(1, "Prod Team Leader", memberStore.HasRole),
-			Handler:   NewNewProdProjectHandler(pm),
+			Condition: daocond.And(
+				daocond.RoleCount(1, "CEO", memberStore.HasRole),
+				daocond.RoleThreshold(0.3, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
+			),
+			Handler:     NewElectDivisionLeaderHandler(daoPrivate),
+			DisplayName: "Elect a new division leader",
+			Description: "This proposal allows you to elect a new division leader for the Samouraï Coop. The division leader will be added to the list of division leaders and will be in charge of the members and projects of the division.",
 		},
 		{
-			Condition: daocond.RoleCount(1, "Tech Team Leader", memberStore.HasRole),
-			Handler:   NewNewTechProjectHandler(pm),
+			Condition:   daocond.RoleCount(1, "Prod Team Leader", memberStore.HasRole),
+			Handler:     NewNewProdProjectHandler(pm),
+			DisplayName: "New Prod Project",
+			Description: "This proposal allows you to create a new prod project for the Samouraï Coop. The project will be added to the list of prod projects and will be visible to all users.",
+		},
+		{
+			Condition:   daocond.RoleCount(1, "Tech Team Leader", memberStore.HasRole),
+			Handler:     NewNewTechProjectHandler(pm),
+			DisplayName: "New Tech Project",
+			Description: "This proposal allows you to create a new tech project for the Samouraï Coop. The project will be added to the list of tech projects and will be visible to all users.",
 		},
 		{
 			Condition: daocond.And(
 				daocond.RoleThreshold(0.66, "Leader", memberStore.HasRole, memberStore.CountMembersWithRole),
 				daocond.RoleCount(1, "Accountability", memberStore.HasRole),
 			),
-			Handler: NewEditPayrollsHandler(daoPrivate),
+			Handler:     NewEditPayrollsHandler(daoPrivate),
+			DisplayName: "Edit Payrolls",
+			Description: "This proposal allows you to edit the payrolls for the Samouraï Coop. The payrolls will be updated and will be visible to all users.",
 		},
 	}
 
@@ -139,4 +161,12 @@ func Vote(proposalID uint64, vote daocond.Vote) {
 
 func Execute(proposalID uint64) {
 	DAO.Execute(proposalID)
+}
+
+func GetProposal(id uint64) *daokit.Proposal {
+	return daoPrivate.Core.Proposals.GetProposal(id)
+}
+
+func DummyFunc(id uint64) {
+	_ = id
 }

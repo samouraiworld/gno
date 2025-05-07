@@ -71,7 +71,10 @@ func NewNewPostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		blogTarget.NewPost(std.CurrentRealm().Address(), msg.Slug, msg.Title, msg.Body, msg.PubDate, msg.Authors, msg.Tags)
+		err := blogTarget.NewPost(std.CurrentRealm().Address(), msg.Slug, msg.Title, msg.Body, msg.PubDate, msg.Authors, msg.Tags)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 

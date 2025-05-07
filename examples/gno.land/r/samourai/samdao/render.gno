@@ -14,6 +14,9 @@ func Render(path string) string {
 	daoPrivate.RenderRouter.HandleFunc(basedao.PROPOSAL_HISTORY_PATH, daoPrivate.MuxProposalHistoryPage)
 	daoPrivate.RenderRouter.HandleFunc(basedao.MEMBER_DETAIL_PATH, daoPrivate.MuxMemberDetailPage)
 	daoPrivate.RenderRouter.HandleFunc(basedao.PROPOSAL_DETAIL_PATH, daoPrivate.MuxProposalDetailPage)
+	daoPrivate.RenderRouter.HandleFunc("blog", samBlog.RenderHome)
+	daoPrivate.RenderRouter.HandleFunc("blog:p/{slug}", samBlog.RenderPost)
+	daoPrivate.RenderRouter.HandleFunc("blog:t/{slug}", samBlog.RenderTag)
 	return daoPrivate.Render(path)
 }
 

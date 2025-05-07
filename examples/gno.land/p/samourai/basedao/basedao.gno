@@ -25,6 +25,9 @@ func (d *daoPublic) Vote(id uint64, vote daocond.Vote) {
 	d.impl.Vote(id, vote)
 }
 
+func (d *daoPublic) DummyFunc() {
+}
+
 // DAO is meant for internal realm usage and should not be exposed
 type DAOPrivate struct {
 	Core             *daokit.Core
@@ -97,15 +100,37 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 			})
 		}
 
-		// register management handlers
-		for _, m := range []daokit.MessageHandler{
-			NewAddMemberHandler(dao),
-			NewRemoveMemberHandler(dao),
-			NewAssignRoleHandler(dao),
-			NewUnassignRoleHandler(dao),
-		} {
-			dao.Core.Resources.Set(&daokit.Resource{Handler: m, Condition: conf.InitialCondition})
+		defaultResources := []daokit.Resource{
+			{
+				Handler:     NewAddMemberHandler(dao),
+				Condition:   conf.InitialCondition,
+				DisplayName: "Add Member",
+				Description: "This proposal allows you to add a new member to the DAO.",
+			},
+			{
+				Handler:     NewRemoveMemberHandler(dao),
+				Condition:   conf.InitialCondition,
+				DisplayName: "Remove Member",
+				Description: "This proposal allows you to remove a member from the DAO.",
+			},
+			{
+				Handler:     NewAssignRoleHandler(dao),
+				Condition:   conf.InitialCondition,
+				DisplayName: "Assign Role",
+				Description: "This proposal allows you to assign a role to a member.",
+			},
+			{
+				Handler:     NewUnassignRoleHandler(dao),
+				Condition:   conf.InitialCondition,
+				DisplayName: "Unassign Role",
+				Description: "This proposal allows you to unassign a role from a member.",
+			},
 		}
+		// register management handlers
+		for _, resource := range defaultResources {
+			dao.Core.Resources.Set(&resource)
+		}
+
 	}
 
 	if !conf.NoCreationEvent {
@@ -116,12 +141,12 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 }
 
 func (d *DAOPrivate) Vote(proposalID uint64, vote daocond.Vote) {
-	if len(vote) > 16 {
-		panic("invalid vote")
-	}
+	// if len(vote) > 16 {
+	// 	panic("invalid vote")
+	// }
 
-	voterID := d.assertCallerIsMember()
-	d.Core.Vote(voterID, proposalID, vote)
+	// voterID := d.assertCallerIsMember()
+	// d.Core.Vote(voterID, proposalID, vote)
 }
 
 func (d *DAOPrivate) Execute(proposalID uint64) {

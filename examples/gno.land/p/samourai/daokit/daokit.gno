@@ -10,6 +10,7 @@ type DAO interface {
 	Propose(req ProposalRequest) uint64
 	Execute(id uint64)
 	Vote(id uint64, vote daocond.Vote)
+	DummyFunc()
 }
 
 func InstantExecute(d DAO, req ProposalRequest) uint64 {
@@ -33,24 +34,24 @@ func NewCore() *Core {
 }
 
 func (d *Core) Vote(voterID string, proposalID uint64, vote daocond.Vote) {
-	proposal := d.Proposals.GetProposal(proposalID)
-	if proposal == nil {
-		panic("proposal not found")
-	}
+	// proposal := d.Proposals.GetProposal(proposalID)
+	// if proposal == nil {
+	// 	panic("proposal not found")
+	// }
 
-	if proposal.Status != ProposalStatusOpen {
-		panic("proposal is not open")
-	}
+	// if proposal.Status != ProposalStatusOpen {
+	// 	panic("proposal is not open")
+	// }
 
-	if !d.NoEvents {
-		e := &daocond.EventVote{
-			VoterID: voterID,
-			Vote:    daocond.Vote(vote),
-		}
-		proposal.ConditionState.HandleEvent(e, proposal.Votes)
-	}
+	// if !d.NoEvents {
+	// 	e := &daocond.EventVote{
+	// 		VoterID: voterID,
+	// 		Vote:    daocond.Vote(vote),
+	// 	}
+	// 	proposal.ConditionState.HandleEvent(e, proposal.Votes)
+	// }
 
-	proposal.Votes[voterID] = daocond.Vote(vote)
+	// proposal.Votes[voterID] = daocond.Vote(vote)
 
 }
 
