@@ -149,14 +149,14 @@ func NewElectDivisionLeaderMsg(division string, address std.Address) daokit.Exec
 const MsgNewProdProjectKind = "gno.land/r/samourai/samdao.NewProdProject"
 
 type MsgNewProdProject struct {
-	Title       string
+	Name        string
 	Description string
 	Members     []std.Address
 	Tasks       []project_manager.Task
 }
 
 func (m *MsgNewProdProject) String() string {
-	return ufmt.Sprintf("New prod project: %s", m.Title)
+	return ufmt.Sprintf("New prod project: %s", m.Name)
 }
 
 func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
@@ -165,12 +165,12 @@ func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.M
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		pmTarget.AddProject(msg.Title, msg.Description, project_manager.DivisionProd, msg.Members, msg.Tasks)
+		pmTarget.AddProject(msg.Name, msg.Description, project_manager.DivisionProd, msg.Members, msg.Tasks)
 	})
 }
 
-func NewNewProdProjectMsg(title string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewProdProjectKind, &MsgNewProdProject{Title: title})
+func NewNewProdProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewProdProjectKind, &MsgNewProdProject{Name: name, Description: description, Tasks: tasks, Members: members})
 }
 
 // NEW TECH PROJECT
@@ -178,14 +178,14 @@ func NewNewProdProjectMsg(title string) daokit.ExecutableMessage {
 const MsgNewTechProjectKind = "gno.land/r/samourai/samdao.NewTechProject"
 
 type MsgNewTechProject struct {
-	Title       string
+	Name        string
 	Description string
 	Tasks       []project_manager.Task
 	Members     []std.Address
 }
 
 func (m *MsgNewTechProject) String() string {
-	return ufmt.Sprintf("New tech project: %s", m.Title)
+	return ufmt.Sprintf("New tech project: %s", m.Name)
 }
 
 func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
@@ -195,12 +195,12 @@ func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.M
 			panic(errors.New("invalid payload type"))
 		}
 
-		pmTarget.AddProject(msg.Title, msg.Description, project_manager.DivisionTech, msg.Members, msg.Tasks)
+		pmTarget.AddProject(msg.Name, msg.Description, project_manager.DivisionTech, msg.Members, msg.Tasks)
 	})
 }
 
-func NewNewTechProjectMsg(title string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewTechProjectKind, &MsgNewTechProject{Title: title})
+func NewNewTechProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewTechProjectKind, &MsgNewTechProject{Name: name, Description: description, Tasks: tasks, Members: members})
 }
 
 // EDIT PAYROLLS

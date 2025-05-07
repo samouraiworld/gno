@@ -25,9 +25,6 @@ func (d *daoPublic) Vote(id uint64, vote daocond.Vote) {
 	d.impl.Vote(id, vote)
 }
 
-func (d *daoPublic) DummyFunc() {
-}
-
 // DAO is meant for internal realm usage and should not be exposed
 type DAOPrivate struct {
 	Core             *daokit.Core
@@ -141,12 +138,12 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 }
 
 func (d *DAOPrivate) Vote(proposalID uint64, vote daocond.Vote) {
-	// if len(vote) > 16 {
-	// 	panic("invalid vote")
-	// }
+	if len(vote) > 16 {
+		panic("invalid vote")
+	}
 
-	// voterID := d.assertCallerIsMember()
-	// d.Core.Vote(voterID, proposalID, vote)
+	voterID := d.assertCallerIsMember()
+	d.Core.Vote(voterID, proposalID, vote)
 }
 
 func (d *DAOPrivate) Execute(proposalID uint64) {
