@@ -11,9 +11,8 @@ import (
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/seqid"
 	"gno.land/p/demo/ufmt"
-	"gno.land/p/demo/users"
 	"gno.land/r/demo/grc20reg"
-	rusers "gno.land/r/demo/users"
+	"gno.land/r/sys/users"
 )
 
 const (
@@ -30,21 +29,18 @@ func Render(renderPath string) string {
 		w.WriteString("# Payrolls beneficiary\n")
 
 		path := strings.TrimPrefix(renderPath, "/u/")
-		aon := users.AddressOrName(path)
-		user := rusers.GetUserByAddressOrName(aon)
-		addr := std.Address(aon)
+		user, _ := users.ResolveAny(path)
 		if user != nil {
-			addr = user.Address
-			w.WriteString(ufmt.Sprintf("- 👤 User: @%s\n", user.Name))
-		} else if !addr.IsValid() {
-			w.WriteString(ufmt.Sprintf("❓ User %q not found\n", addr.String()))
+			w.WriteString(ufmt.Sprintf("- 👤 User: @%s\n", user.Name()))
+		} else {
+			w.WriteString(ufmt.Sprintf("❓ User %q not found\n", path))
 			break
 		}
 
-		w.WriteString(ufmt.Sprintf("- 🆔 Address: %s\n", addr.String()))
+		w.WriteString(ufmt.Sprintf("- 🆔 Address: %s\n", user.Addr().String()))
 
 		sb := strings.Builder{}
-		tree, ok := payrollsByBeneficiary[addr]
+		tree, ok := payrollsByBeneficiary[user.Addr()]
 		if !ok {
 			tree = avl.NewTree()
 		}
@@ -78,13 +74,13 @@ func Render(renderPath string) string {
 
 		if !shouldEstimate || !coinsEmpty(estimatedClaimable) {
 			actions = append(actions, renderButton("Claim all", "ClaimAll", map[string]string{
-				"destination": addr.String(),
+				"destination": user.Addr().String(),
 			}))
 		}
 
 		actions = append(actions, renderButton("New payroll", "CreateMonthlyContinuous", map[string]string{
 			"label":          "Salary Monthly",
-			"beneficiary":    addr.String(),
+			"beneficiary":    user.Addr().String(),
 			"amountPerMonth": "10000",
 			"denom":          defaultDenom,
 		}))
@@ -116,7 +112,7 @@ func Render(renderPath string) string {
 
 		name := vaultID
 		if vaultUser != nil {
-			name = vaultIDUnsafe("@"+vaultUser.Name, namespace)
+			name = vaultIDUnsafe("@"+vaultUser.Name(), namespace)
 		}
 		w.WriteString(ufmt.Sprintf("- 🎩 Name: %s\n", name))
 
@@ -277,19 +273,19 @@ func renderPayroll(p *payroll, pov string) string {
 		base, namespace := splitVaultInput(p.vaultID)
 		_, usr, _ := resolveVaultBase(base)
 		if usr != nil {
-			base = "@" + usr.Name
+			base = "@" + usr.Name()
 		}
 		pvid := vaultIDUnsafe(base, namespace)
 		sb.WriteString(ufmt.Sprintf("  - 🎩 Vault: [%s](%s:/v/%s)\n", pvid, linkPrefix(), pvid))
 	}
 
 	if pov != "beneficiary" {
-		beneficiaryUser := rusers.GetUserByAddress(p.beneficiary)
+		beneficiaryUser := users.ResolveAddress(p.beneficiary)
 		var userStr string
 		if beneficiaryUser == nil {
 			userStr = p.beneficiary.String()
 		} else {
-			userStr = "@" + beneficiaryUser.Name
+			userStr = "@" + beneficiaryUser.Name()
 		}
 		sb.WriteString(ufmt.Sprintf("  - 👤 Beneficiary: [%s](%s:/u/%s)\n", userStr, linkPrefix(), userStr))
 	}
@@ -420,18 +416,18 @@ func renderActions(prefix string, actions []string) string {
 	return prefix + "- ✋ Actions: " + strings.Join(actions, " ") + "\n"
 }
 
-func resolveVaultBase(base string) (string, *users.User, bool) {
+func resolveVaultBase(base string) (string, *users.UserData, bool) {
 	if len(base) == 0 {
 		return "", nil, false
 	}
 
-	if strings.HasPrefix(base, std.GetChainDomain()+"/r/") {
+	if strings.HasPrefix(base, std.ChainDomain()+"/r/") {
 		return base, nil, true
 	}
 
-	usr := rusers.GetUserByAddressOrName(users.AddressOrName(base))
+	usr, _ := users.ResolveAny(base)
 	if usr != nil {
-		return usr.Address.String(), usr, true
+		return usr.Addr().String(), usr, true
 	}
 
 	if std.Address(base).IsValid() {
@@ -489,7 +485,7 @@ func renderCoinDenom(denom string) string {
 		if token == nil {
 			break
 		}
-		return ufmt.Sprintf("[$%s](%s)", tokenGetter().GetSymbol(), strings.TrimPrefix(fqdenom, std.GetChainDomain()))
+		return ufmt.Sprintf("[$%s](%s)", tokenGetter().GetSymbol(), strings.TrimPrefix(fqdenom, std.ChainDomain()))
 	}
 
 	return denom

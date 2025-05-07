@@ -27,7 +27,7 @@ var (
 func Create(namespace string, label string, beneficiary std.Address, distrib DistribFn, breakup BreakupFn) seqid.ID {
 	assertValidNamespace(namespace)
 
-	vaultID := vaultIDFromRealm(std.PrevRealm(), namespace)
+	vaultID := vaultIDFromRealm(std.PreviousRealm(), namespace)
 
 	if distrib == nil {
 		panic(errors.New("nil distrib"))
@@ -44,7 +44,7 @@ func Create(namespace string, label string, beneficiary std.Address, distrib Dis
 		breakup:     breakup,
 		beneficiary: beneficiary,
 		label:       label,
-		creatorAddr: std.PrevRealm().Addr(),
+		creatorAddr: std.PreviousRealm().Address(),
 	}
 
 	payrolls.Set(id.String(), &p)
@@ -73,7 +73,7 @@ func Claim(id seqid.ID, destination std.Address) {
 
 func claimInternal(id seqid.ID, destination std.Address, mustClaim bool) bool {
 	p := mustGetPayroll(id)
-	caller := std.PrevRealm().Addr()
+	caller := std.PreviousRealm().Address()
 	if caller != p.beneficiary {
 		panic(errors.New("only beneficiary can withdraw"))
 	}
@@ -103,7 +103,7 @@ func claimInternal(id seqid.ID, destination std.Address, mustClaim bool) bool {
 //
 // - If destination is empty, it will send coins to the caller address
 func ClaimAll(destination std.Address) {
-	beneficiary := std.PrevRealm().Addr()
+	beneficiary := std.PreviousRealm().Address()
 	claimed := false
 	payrollsByBeneficiary[beneficiary].Iterate("", "", func(key string, value interface{}) bool {
 		p := value.(*payroll)
@@ -133,7 +133,7 @@ func FundNative(base string, namespace string) {
 	)
 
 	if base == "" {
-		id = vaultIDFromRealm(std.PrevRealm(), namespace)
+		id = vaultIDFromRealm(std.PreviousRealm(), namespace)
 	} else {
 		id, err = vaultID(base, namespace)
 		if err != nil {
@@ -141,7 +141,7 @@ func FundNative(base string, namespace string) {
 		}
 	}
 
-	send := std.GetOrigSend()
+	send := std.OriginSend()
 	if coinsEmpty(send) {
 		panic(errors.New("invalid amount"))
 	}
@@ -182,7 +182,7 @@ func fundGRC20(base string, namespace string, token *grc20.Token, tokenKey strin
 	)
 
 	if base == "" {
-		id = vaultIDFromRealm(std.PrevRealm(), namespace)
+		id = vaultIDFromRealm(std.PreviousRealm(), namespace)
 	} else {
 		id, err = vaultID(base, namespace)
 		if err != nil {
@@ -191,11 +191,11 @@ func fundGRC20(base string, namespace string, token *grc20.Token, tokenKey strin
 	}
 
 	if anyAmount {
-		amount = int64(token.Allowance(std.PrevRealm().Addr(), std.CurrentRealm().Addr()))
+		amount = int64(token.Allowance(std.PreviousRealm().Address(), std.CurrentRealm().Address()))
 	}
 
 	teller := token.CallerTeller()
-	if err := teller.TransferFrom(std.PrevRealm().Addr(), std.CurrentRealm().Addr(), uint64(amount)); err != nil {
+	if err := teller.TransferFrom(std.PreviousRealm().Address(), std.CurrentRealm().Address(), uint64(amount)); err != nil {
 		panic(err)
 	}
 
@@ -219,12 +219,12 @@ func WithdrawFunds(namespace string, denom string, amount int64, destination std
 		panic(errors.New("invalid amount"))
 	}
 
-	prevRealm := std.PrevRealm()
+	PreviousRealm := std.PreviousRealm()
 	if len(destination) == 0 {
-		destination = prevRealm.Addr()
+		destination = PreviousRealm.Address()
 	}
 
-	id := vaultIDFromRealm(prevRealm, namespace)
+	id := vaultIDFromRealm(PreviousRealm, namespace)
 
 	vaultAmount := getVaultCoins(id)
 	if vaultAmount.AmountOf(denom) == 0 {
@@ -254,19 +254,19 @@ func WithdrawFunds(namespace string, denom string, amount int64, destination std
 // Stop terminates the payroll identified by id. It will distribute coins using the payroll's breakup function.
 func Stop(id seqid.ID) {
 	p := mustGetPayroll(id)
-	p.stop(std.PrevRealm().Addr())
+	p.stop(std.PreviousRealm().Address())
 }
 
 // Pause pauses the payroll identified by id. The payroll will not release coins during the pause.
 func Pause(id seqid.ID) {
 	p := mustGetPayroll(id)
-	p.pause(std.PrevRealm().Addr())
+	p.pause(std.PreviousRealm().Address())
 }
 
 // Resume resumes the paused payroll identified by id.
 func Resume(id seqid.ID) {
 	p := mustGetPayroll(id)
-	p.resume(std.PrevRealm().Addr())
+	p.resume(std.PreviousRealm().Address())
 }
 
 func mustGetPayroll(id seqid.ID) *payroll {

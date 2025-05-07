@@ -125,8 +125,8 @@ func sendCoins(dst std.Address, coins std.Coins) {
 	}
 
 	if len(natives) != 0 {
-		banker := std.GetBanker(std.BankerTypeRealmSend)
-		banker.SendCoins(std.CurrentRealm().Addr(), dst, natives)
+		banker := std.NewBanker(std.BankerTypeRealmSend)
+		banker.SendCoins(std.CurrentRealm().Address(), dst, natives)
 	}
 
 	for _, coin := range grc20s {
