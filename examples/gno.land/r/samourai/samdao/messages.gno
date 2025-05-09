@@ -10,6 +10,7 @@ import (
 	"gno.land/p/samourai/basedao"
 	"gno.land/p/samourai/daokit"
 	"gno.land/p/samourai/project_manager"
+	"gno.land/r/samourai/payrolls"
 )
 
 // CHANGE CEO
@@ -205,27 +206,30 @@ func NewNewTechProjectMsg(name string, description string, tasks []project_manag
 
 // EDIT PAYROLLS
 
-const MsgEditPayrollsKind = "gno.land/r/samourai/samdao.EditPayrolls"
+const MsgNewPayrollsKind = "gno.land/r/samourai/samdao.NewPayrolls"
 
-type MsgEditPayrolls struct {
-	target  std.Address
-	payroll uint64
+type MsgNewPayrolls struct {
+	beneficiary std.Address
+	label       string
+	distrib     payrolls.DistribFn
+	breakup     payrolls.BreakupFn
 }
 
-func (m *MsgEditPayrolls) String() string {
-	return ufmt.Sprintf("Edit payrolls for %s", m.target)
+func (m *MsgNewPayrolls) String() string {
+	return ufmt.Sprintf("New payrolls for %s - %s", m.beneficiary, m.label)
 }
 
-func NewEditPayrollsHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgEditPayrollsKind, func(ipayload interface{}) {
-		_, ok := ipayload.(*MsgEditPayrolls)
+func NewNewPayrollsHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgNewPayrollsKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgNewPayrolls)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
-		panic("not implemented")
+		namespace := "samdao"
+		cross(payrolls.Create)(namespace, msg.label, msg.beneficiary, msg.distrib, msg.breakup)
 	})
 }
 
-func NewEditPayrollsMsg(target std.Address, payroll uint64) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgEditPayrollsKind, &MsgEditPayrolls{target: target, payroll: payroll})
+func NewNewPayrollsMsg(beneficiary std.Address, label string, distrib payrolls.DistribFn, breakup payrolls.BreakupFn) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewPayrollsKind, &MsgNewPayrolls{beneficiary: beneficiary, label: label, distrib: distrib, breakup: breakup})
 }

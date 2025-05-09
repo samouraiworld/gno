@@ -141,12 +141,12 @@ func init() {
 		},
 		{
 			Condition: daocond.And(
-				daocond.RoleThreshold(0.66, "Leader", memberStore.HasRole, memberStore.CountMembersWithRole),
+				daocond.RoleThreshold(0.66, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
 				daocond.RoleCount(1, "Accountability", memberStore.HasRole),
 			),
-			Handler:     NewEditPayrollsHandler(daoPrivate),
-			DisplayName: "Edit Payrolls",
-			Description: "This proposal allows you to edit the payrolls for the Samouraï Coop. The payrolls will be updated and will be visible to all users.",
+			Handler:     NewNewPayrollsHandler(daoPrivate),
+			DisplayName: "New Payrolls",
+			Description: "This proposal allows you to create new payrolls for a beneficiary.",
 		},
 	}
 
@@ -160,13 +160,10 @@ func Vote(proposalID uint64, vote daocond.Vote) {
 }
 
 func Execute(proposalID uint64) {
+	crossing()
 	DAO.Execute(proposalID)
 }
 
 func GetProposal(id uint64) *daokit.Proposal {
 	return daoPrivate.Core.Proposals.GetProposal(id)
-}
-
-func DummyFunc(id uint64) {
-	_ = id
 }

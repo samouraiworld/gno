@@ -25,6 +25,7 @@ var (
 //
 // - breakup is the function used to manage bonuses when a payroll is terminated. It can be nil. Example: [BreakupCDI]
 func Create(namespace string, label string, beneficiary std.Address, distrib DistribFn, breakup BreakupFn) seqid.ID {
+	crossing()
 	assertValidNamespace(namespace)
 
 	vaultID := vaultIDFromRealm(std.PreviousRealm(), namespace)
