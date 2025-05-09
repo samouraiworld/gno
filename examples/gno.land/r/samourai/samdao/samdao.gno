@@ -71,6 +71,7 @@ func init() {
 	DAO, daoPrivate = basedao.New(&basedao.Config{
 		Name:             "Samouraï Coop",
 		Description:      description,
+		ImageURI:         "https://media.licdn.com/dms/image/v2/C4D16AQHbPggOTGi5WQ/profile-displaybackgroundimage-shrink_200_800/profile-displaybackgroundimage-shrink_200_800/0/1637001413868?e=2147483647&v=beta&t=7mLA4GcBE83RLpdKGehBFfYfr80WA5KRY_LnMXpTBAY",
 		Members:          memberStore,
 		GetProfileString: profile.GetStringField,
 		SetProfileString: profile.SetStringField,

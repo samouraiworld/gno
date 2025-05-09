@@ -1,6 +1,7 @@
 package samdao
 
 import (
+	"std"
 	"strings"
 
 	"gno.land/p/demo/mux"
@@ -38,6 +39,13 @@ func HomeProjectsView() string {
 		for _, project := range projects {
 			s += ufmt.Sprintf("- **%s**\n", project.Name)
 			s += ufmt.Sprintf("  - **Description:** %s\n", project.Description)
+			s += ufmt.Sprintf("  - **Members:** \n\n")
+			project.Members.Iterate("", "", func(key string, value interface{}) bool {
+				member := std.Address(key)
+				profile := daoPrivate.GetProfileString(member, "DisplayName", basedao.FALLBACK_DISPLAY_NAME)
+				s += ufmt.Sprintf("    - %s\n", profile)
+				return false
+			})
 		}
 	}
 	s += "----------------------------------------\n\n"

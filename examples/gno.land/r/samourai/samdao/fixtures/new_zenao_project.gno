@@ -11,14 +11,15 @@ import (
 
 func main() {
 	daokit.InstantExecute(samdao.DAO, daokit.ProposalRequest{
-		Title: "New Zenao Project",
+		Title:       "Create a new web3 ticketing platform based on Gno: Zenao",
+		Description: "We wanted to create a project to allow people to organize events and sell tickets for them where each events in itself is a DAO.",
 		Message: samdao.NewNewTechProjectMsg(
-			"Zenao",
-			"Zenao is a project that will help us to create a better world.",
+			"Zenao.io",
+			"Zenao allows you to create your own event DAO and sell tickets for it. You can interact with your participants, launch polls, and govern your event by defining the rules.",
 			[]project_manager.Task{
 				{
-					Name:        "Hyperktive target",
-					Description: "Goal is met the requirements for the hyperktive event",
+					Name:        "HyperHacktive target",
+					Description: "Zenao plateform should met the requirements for the HyperHacktive organized by the Samourai Coop.\nSee more at [HyperHacktive](https://www.samourai.world/hyperhacktive)",
 					Members:     avl.NewTree(),
 					Status:      project_manager.StatusDoing,
 				},

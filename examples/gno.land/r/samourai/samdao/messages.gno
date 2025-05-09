@@ -4,6 +4,7 @@ import (
 	"errors"
 	"std"
 	"strings"
+	"time"
 
 	"gno.land/p/demo/blog"
 	"gno.land/p/demo/ufmt"
@@ -63,7 +64,14 @@ type MsgNewPost struct {
 }
 
 func (m *MsgNewPost) String() string {
-	return ufmt.Sprintf("New post: %s", m.Title)
+	s := ""
+	s += ufmt.Sprintf("- New post: **%s**\n\n", m.Title)
+	s += ufmt.Sprintf("- Slug: **%s**\n\n", m.Slug)
+	s += ufmt.Sprintf("- Authors: %s\n\n", strings.Join(m.Authors, ", "))
+	s += ufmt.Sprintf("- Tags: %s\n\n", strings.Join(m.Tags, ", "))
+	s += ufmt.Sprintf("- PubDate: %s\n\n", m.PubDate)
+	s += ufmt.Sprintf("### Body:\n\n%s\n\n", m.Body)
+	return s
 }
 
 func NewNewPostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
@@ -99,7 +107,7 @@ type MsgNewStakeholder struct {
 }
 
 func (m *MsgNewStakeholder) String() string {
-	return ufmt.Sprintf("New stakeholder: %s", m.Address)
+	return ufmt.Sprintf("Assign stakeholder role to %s", m.Address)
 }
 
 func NewNewStakeholderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
@@ -157,7 +165,20 @@ type MsgNewProdProject struct {
 }
 
 func (m *MsgNewProdProject) String() string {
-	return ufmt.Sprintf("New prod project: %s", m.Name)
+	s := ""
+	s += ufmt.Sprintf("New prod project: %s\n", m.Name)
+	s += ufmt.Sprintf("Description: %s\n", m.Description)
+	s += ufmt.Sprintf("Members:\n")
+	for _, member := range m.Members {
+		s += ufmt.Sprintf("  - %s\n", member.String())
+	}
+	s += ufmt.Sprintf("Tasks:\n")
+	for _, task := range m.Tasks {
+		s += ufmt.Sprintf("  - %s\n", task.Name)
+		s += ufmt.Sprintf("    - Description: %s\n", task.Description)
+		s += ufmt.Sprintf("    - Status: %s\n", task.Status)
+	}
+	return s
 }
 
 func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
@@ -186,7 +207,20 @@ type MsgNewTechProject struct {
 }
 
 func (m *MsgNewTechProject) String() string {
-	return ufmt.Sprintf("New tech project: %s", m.Name)
+	s := ""
+	s += ufmt.Sprintf("New tech project: %s\n\n", m.Name)
+	s += ufmt.Sprintf("Description: %s\n\n", m.Description)
+	s += ufmt.Sprintf("Members:\n\n")
+	for _, member := range m.Members {
+		s += ufmt.Sprintf("  - %s\n\n", member.String())
+	}
+	s += ufmt.Sprintf("Tasks:\n\n")
+	for _, task := range m.Tasks {
+		s += ufmt.Sprintf("  - %s\n\n", task.Name)
+		s += ufmt.Sprintf("    - Description: %s\n\n", task.Description)
+		s += ufmt.Sprintf("    - Status: %s\n\n", task.Status)
+	}
+	return s
 }
 
 func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
@@ -216,7 +250,15 @@ type MsgNewPayrolls struct {
 }
 
 func (m *MsgNewPayrolls) String() string {
-	return ufmt.Sprintf("New payrolls for %s - %s", m.beneficiary, m.label)
+	s := ""
+	if m.distrib == nil {
+		return ufmt.Sprintf("Invalid payrolls: nil distrib\n")
+	}
+	monthlyCoins := m.distrib(time.Hour * 24 * 30)
+	s += ufmt.Sprintf("New payrolls to **%s**\n\n", m.beneficiary)
+	s += ufmt.Sprintf("Label: **%s**\n\n", m.label)
+	s += ufmt.Sprintf("Distribution per month: **%s**\n\n", monthlyCoins)
+	return s
 }
 
 func NewNewPayrollsHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {

@@ -10,11 +10,12 @@ import (
 
 func main() {
 	samdao.DAO.Propose(daokit.ProposalRequest{
-		Title: "Add a new payroll for Mikael",
+		Title:       "Add a new payroll for Mikael",
+		Description: "Mikael is a member of the Samourai Coop and he is a freelancer. He will be paid 6000 ugnot per month.",
 		Message: samdao.NewNewPayrollsMsg(
 			std.Address("g1tqys7x6qmrlx9ed0ja7kj6fmuqa828h58xpj8s"),
 			"Monthly Salary",
-			payrolls.DistribMonthlyContinuous(std.NewCoins(std.NewCoin("ugnot", 100_000_000))),
+			payrolls.DistribMonthlyContinuous(std.NewCoins(std.NewCoin("ugnot", 6000))),
 			nil,
 		),
 	})

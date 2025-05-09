@@ -109,6 +109,10 @@ func (d *DAOPrivate) HomeProfileHeaderView(noprofile bool) string {
 
 	if !noprofile {
 		s += ufmt.Sprintf("# %s\n\n", name)
+		imageURI := d.GetProfileString(d.Realm.Address(), "Avatar", "")
+		if imageURI != "" {
+			s += ufmt.Sprintf("![Image](%s)\n\n", imageURI)
+		}
 		s += ufmt.Sprintf("%s\n\n", description)
 	}
 
