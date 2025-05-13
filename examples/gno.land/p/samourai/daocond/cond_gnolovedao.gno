@@ -12,6 +12,7 @@ import (
 
 var roleWeights = []float64{3.0, 2.0, 1.0}
 
+// This is our implementation of the govdao codition following Jae Kwon's specification: https://gist.github.com/jaekwon/918ad325c4c8f7fb5d6e022e33cb7eb3
 func GnoloveDAOCondThreshold(threshold float64, roles []string, hasRoleFn func(memberId string, role string) bool, usersWithRoleCountFn func(role string) uint32) Condition {
 	if threshold <= 0 || threshold > 1 {
 		panic(errors.New("invalid threshold"))
