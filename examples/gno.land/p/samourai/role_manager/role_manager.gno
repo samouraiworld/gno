@@ -171,7 +171,7 @@ func (rm *RoleManager) GetRoles() []string {
 	return res
 }
 
-func (rm *RoleManager) GetRoleUsers(roleName string) []string {
+func (rm *RoleManager) GetUsersWithRole(roleName string) []string {
 	role := rm.mustGetRole(roleName)
 	i := 0
 	users := role.users

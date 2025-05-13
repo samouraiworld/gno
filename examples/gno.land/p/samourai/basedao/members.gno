@@ -65,11 +65,11 @@ func (m *MembersStore) CountMemberRoles(memberId string) int {
 }
 
 func (m *MembersStore) GetMembersWithRole(role string) []string {
-	return m.RoleManager.GetRoleUsers(role)
+	return m.RoleManager.GetUsersWithRole(role)
 }
 
 func (m *MembersStore) CountMembersWithRole(role string) uint32 {
-	return uint32(len(m.RoleManager.GetRoleUsers(role)))
+	return uint32(len(m.RoleManager.GetUsersWithRole(role)))
 }
 
 func (m *MembersStore) setRoles(roles []role_manager.RoleInfo) {
