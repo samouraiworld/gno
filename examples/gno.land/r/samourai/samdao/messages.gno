@@ -240,16 +240,16 @@ func NewNewTechProjectMsg(name string, description string, tasks []project_manag
 
 // EDIT PAYROLLS
 
-const MsgNewPayrollsKind = "gno.land/r/samourai/samdao.NewPayrolls"
+const MsgNewPayrollKind = "gno.land/r/samourai/samdao.NewPayroll"
 
-type MsgNewPayrolls struct {
+type MsgNewPayroll struct {
 	beneficiary std.Address
 	label       string
 	distrib     payrolls.DistribFn
 	breakup     payrolls.BreakupFn
 }
 
-func (m *MsgNewPayrolls) String() string {
+func (m *MsgNewPayroll) String() string {
 	s := ""
 	if m.distrib == nil {
 		return ufmt.Sprintf("Invalid payrolls: nil distrib\n")
@@ -261,9 +261,9 @@ func (m *MsgNewPayrolls) String() string {
 	return s
 }
 
-func NewNewPayrollsHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewPayrollsKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewPayrolls)
+func NewNewPayrollHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgNewPayrollKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgNewPayroll)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -272,6 +272,6 @@ func NewNewPayrollsHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
 	})
 }
 
-func NewNewPayrollsMsg(beneficiary std.Address, label string, distrib payrolls.DistribFn, breakup payrolls.BreakupFn) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewPayrollsKind, &MsgNewPayrolls{beneficiary: beneficiary, label: label, distrib: distrib, breakup: breakup})
+func NewNewPayrollMsg(beneficiary std.Address, label string, distrib payrolls.DistribFn, breakup payrolls.BreakupFn) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgNewPayrollKind, &MsgNewPayroll{beneficiary: beneficiary, label: label, distrib: distrib, breakup: breakup})
 }

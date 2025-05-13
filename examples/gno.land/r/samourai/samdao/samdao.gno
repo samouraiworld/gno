@@ -144,7 +144,7 @@ func init() {
 				daocond.RoleThreshold(0.66, "Stakeholder", memberStore.HasRole, memberStore.CountMembersWithRole),
 				daocond.RoleCount(1, "Accountability", memberStore.HasRole),
 			),
-			Handler:     NewNewPayrollsHandler(daoPrivate),
+			Handler:     NewNewPayrollHandler(daoPrivate),
 			DisplayName: "New Payrolls",
 			Description: "This proposal allows you to create new payrolls for a beneficiary.",
 		},
