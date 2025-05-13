@@ -79,12 +79,11 @@ func init() {
 	})
 
 	resources := []daokit.Resource{
-		// Replace by a Member Count Condition = 1
 		{
-			Condition:   daocond.MembersThreshold(0.001, memberStore.IsMember, memberStore.MembersCount),
+			Condition:   adminCond,
 			Handler:     daokit.NewInstantExecuteHandler(),
 			DisplayName: "Create, vote and execute a proposal",
-			Description: "This proposal allows you to create, vote and execute a proposal. It's meant to be used when the user can meet the proposal condition by himself.",
+			Description: "This proposal allows you to create, vote and execute a proposal. Meant to be used in a context where Samourai is a sub-DAO of a bigger DAO.",
 		},
 		{
 			Condition:   adminCond,
