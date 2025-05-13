@@ -12,7 +12,7 @@ import (
 
 var roleWeights = []float64{3.0, 2.0, 1.0}
 
-func GovDaoCondThreshold(threshold float64, roles []string, hasRoleFn func(memberId string, role string) bool, usersWithRoleCountFn func(role string) uint32) Condition {
+func GnoloveDAOCondThreshold(threshold float64, roles []string, hasRoleFn func(memberId string, role string) bool, usersWithRoleCountFn func(role string) uint32) Condition {
 	if threshold <= 0 || threshold > 1 {
 		panic(errors.New("invalid threshold"))
 	}
@@ -23,9 +23,9 @@ func GovDaoCondThreshold(threshold float64, roles []string, hasRoleFn func(membe
 		panic(errors.New("nil hasRoleFn"))
 	}
 	if len(roles) > 3 {
-		panic("the govdao condition handles at most 3 roles")
+		panic("the gnolove dao condition handles at most 3 roles")
 	}
-	return &govDaoCondThreshold{
+	return &gnoloveDaoThreshold{
 		threshold:            threshold,
 		roles:                roles,
 		hasRoleFn:            hasRoleFn,
@@ -33,20 +33,20 @@ func GovDaoCondThreshold(threshold float64, roles []string, hasRoleFn func(membe
 	}
 }
 
-type govDaoCondThreshold struct {
+type gnolovDaoCondThreshold struct {
 	threshold            float64
 	roles                []string
 	hasRoleFn            func(memberId string, role string) bool
 	usersWithRoleCountFn func(role string) uint32
 }
 
-func (m *govDaoCondThreshold) NewState() State {
-	return &govDaoCondThresholdState{
+func (m *gnolovDaoCondThreshold) NewState() State {
+	return &gnolovDaoCondThresholdState{
 		cond: m,
 	}
 }
 
-func (m *govDaoCondThreshold) Render() string {
+func (m *gnolovDaoCondThreshold) Render() string {
 	rolePowers := []string{}
 	for i, role := range m.roles {
 		weight := strconv.FormatFloat(roleWeights[i], 'f', 2, 64) // ufmt.Sprintf("%.2f", ...) is not working
@@ -55,32 +55,32 @@ func (m *govDaoCondThreshold) Render() string {
 	return ufmt.Sprintf("%g%% of total voting power | %s", m.threshold*100, strings.Join(rolePowers, " | "))
 }
 
-func (m *govDaoCondThreshold) RenderJSON() *json.Node {
+func (m *gnolovDaoCondThreshold) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
-		"type":      json.StringNode("", "govdao-threshold"),
+		"type":      json.StringNode("", "gnolovedao-threshold"),
 		"threshold": json.NumberNode("", m.threshold),
 	})
 }
 
-var _ Condition = (*govDaoCondThreshold)(nil)
+var _ Condition = (*gnolovDaoCondThreshold)(nil)
 
-type govDaoCondThresholdState struct {
-	cond *govDaoCondThreshold
+type gnolovDaoCondThresholdState struct {
+	cond *gnolovDaoCondThreshold
 }
 
-func (m *govDaoCondThresholdState) Signal(votes map[string]Vote) float64 {
+func (m *gnolovDaoCondThresholdState) Signal(votes map[string]Vote) float64 {
 	return math.Min(m.yesRatio(votes)/m.cond.threshold, 1)
 }
 
-func (m *govDaoCondThresholdState) Eval(votes map[string]Vote) bool {
+func (m *gnolovDaoCondThresholdState) Eval(votes map[string]Vote) bool {
 	return m.yesRatio(votes) >= m.cond.threshold
 }
 
-func (m *govDaoCondThresholdState) HandleEvent(_ Event, _ map[string]Vote) {
+func (m *gnolovDaoCondThresholdState) HandleEvent(_ Event, _ map[string]Vote) {
 	panic(errors.New("not implemented"))
 }
 
-func (m *govDaoCondThresholdState) RenderJSON(votes map[string]Vote) *json.Node {
+func (m *gnolovDaoCondThresholdState) RenderJSON(votes map[string]Vote) *json.Node {
 	vPowers, totalPower := m.computeVotingPowers()
 	rolePowers := []string{}
 	for _, role := range m.cond.roles {
@@ -88,7 +88,7 @@ func (m *govDaoCondThresholdState) RenderJSON(votes map[string]Vote) *json.Node 
 		rolePowers = append(rolePowers, ufmt.Sprintf("%s => %s power", role, weight))
 	}
 	jsonData := json.ObjectNode("", map[string]*json.Node{
-		"type":              json.StringNode("", "govdao-threshold"),
+		"type":              json.StringNode("", "gnolovedao-threshold"),
 		"threshold":         json.NumberNode("", m.cond.threshold),
 		"powerSplit":        json.StringNode("", strings.Join(rolePowers, " | ")),
 		"totalYes":          json.NumberNode("", m.yesRatio(votes)),
@@ -98,9 +98,9 @@ func (m *govDaoCondThresholdState) RenderJSON(votes map[string]Vote) *json.Node 
 	return jsonData
 }
 
-var _ State = (*govDaoCondThresholdState)(nil)
+var _ State = (*gnolovDaoCondThresholdState)(nil)
 
-func (m *govDaoCondThresholdState) yesRatio(votes map[string]Vote) float64 {
+func (m *gnolovDaoCondThresholdState) yesRatio(votes map[string]Vote) float64 {
 	var totalYes float64
 	votingPowersByTier, totalPower := m.computeVotingPowers()
 	// Case when there are zero T1s
@@ -119,7 +119,7 @@ func (m *govDaoCondThresholdState) yesRatio(votes map[string]Vote) float64 {
 	return totalYes / totalPower
 }
 
-func (m *govDaoCondThresholdState) getUserRole(userID string) string {
+func (m *gnolovDaoCondThresholdState) getUserRole(userID string) string {
 	for _, role := range m.cond.roles {
 		if m.cond.hasRoleFn(userID, role) {
 			return role
@@ -128,7 +128,7 @@ func (m *govDaoCondThresholdState) getUserRole(userID string) string {
 	panic("No role found for user")
 }
 
-func (m *govDaoCondThresholdState) computeVotingPowers() (map[string]float64, float64) {
+func (m *gnolovDaoCondThresholdState) computeVotingPowers() (map[string]float64, float64) {
 	votingPowers := make(map[string]float64)
 	totalPower := 0.0
 	countsMembersPerRole := make(map[string]float64)
