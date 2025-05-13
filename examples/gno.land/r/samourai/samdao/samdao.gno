@@ -88,7 +88,7 @@ func init() {
 		{
 			Condition:   adminCond,
 			Handler:     daokit.NewExecuteLambdaHandler(),
-			DisplayName: "Execute Any Proposal",
+			DisplayName: "Execute Arbitrary Code",
 			Description: "This proposal allows you to execute any message, it have to be carefully as it can break or modify in an unexpected way the DAO state.",
 		},
 		{
