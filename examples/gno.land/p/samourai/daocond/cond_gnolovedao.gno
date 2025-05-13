@@ -26,7 +26,7 @@ func GnoloveDAOCondThreshold(threshold float64, roles []string, hasRoleFn func(m
 	if len(roles) > 3 {
 		panic("the gnolove dao condition handles at most 3 roles")
 	}
-	return &gnoloveDaoThreshold{
+	return &gnolovDaoCondThreshold{
 		threshold:            threshold,
 		roles:                roles,
 		hasRoleFn:            hasRoleFn,

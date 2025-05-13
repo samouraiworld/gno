@@ -32,12 +32,11 @@ func TestNewDAO(t *testing.T) {
 		Description:      "My DAO Description",
 		Members:          NewMembersStore(initialRoles, initialMembers),
 		GetProfileString: func(addr std.Address, field, def string) string { return "" },
-		SetProfileString: func(field, value string) bool { return true },
 	}
 
 	daoRealm := std.NewCodeRealm("gno.land/r/testing/daorealm")
-	std.TestSetOriginCaller(alice)
-	std.TestSetRealm(daoRealm)
+	testing.SetOriginCaller(alice)
+	testing.SetRealm(daoRealm)
 	_, dao := New(conf)
 	roles := dao.Members.GetRoles()
 	if len(roles) != 1 {
@@ -57,7 +56,7 @@ func TestNewDAO(t *testing.T) {
 		}
 	}
 
-	urequire.Equal(t, 5, dao.Core.ResourcesCount(), "expected 5 resources")
+	urequire.Equal(t, 4, dao.Core.ResourcesCount(), "expected 4 resources")
 	urequire.Equal(t, dao.Realm.PkgPath(), daoRealm.PkgPath())
 
 	// XXX: check realm and profile
@@ -125,6 +124,7 @@ func TestPropose(t *testing.T) {
 		},
 	}
 
+	realm := std.NewCodeRealm("gno.land/r/testing/daorealm")
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
 			if test.expected.panic {
@@ -134,11 +134,12 @@ func TestPropose(t *testing.T) {
 					}
 				}()
 			}
-
-			std.TestSetOriginCaller(test.input.proposer)
-
 			*tdao.mockHandlerCalled = false
+			func() {
+				testing.SetOriginCaller(test.input.proposer)
+			}()
 			id := tdao.dao.Propose(test.input.proposalReq)
+
 			urequire.False(t, *tdao.mockHandlerCalled, "execute should not be called")
 
 			proposal := tdao.privdao.Core.Proposals.GetProposal(id)
@@ -166,7 +167,6 @@ func TestVote(t *testing.T) {
 	}
 	tdao := newTestingDAO(t, 0.6, members)
 
-	std.TestSetOriginCaller(alice)
 	tdao.dao.Propose(tdao.mockProposalRequest)
 
 	type testVoteInput struct {
@@ -243,8 +243,11 @@ func TestVote(t *testing.T) {
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
 			run := func() {
-				std.TestSetOriginCaller(test.input.voter)
+				func() {
+					testing.SetOriginCaller(test.input.voter)
+				}()
 				tdao.dao.Vote(test.input.proposalID, test.input.vote)
+
 			}
 
 			*tdao.mockHandlerCalled = false
@@ -272,7 +275,6 @@ func TestExecuteProposal(t *testing.T) {
 	}
 	tdao := newTestingDAO(t, 0.6, members)
 
-	std.TestSetOriginCaller(alice)
 	tdao.dao.Propose(tdao.mockProposalRequest)
 
 	type testExecuteInput struct {
@@ -351,11 +353,16 @@ func TestExecuteProposal(t *testing.T) {
 			}
 
 			if test.input.haveVote {
-				std.TestSetOriginCaller(test.input.voter)
+				func() {
+					testing.SetOriginCaller(test.input.voter)
+				}()
 				tdao.dao.Vote(test.input.proposalID, "yes")
+
 			}
 
-			std.TestSetOriginCaller(test.input.executor)
+			func() {
+				testing.SetOriginCaller(test.input.executor)
+			}()
 			tdao.dao.Execute(test.input.proposalID)
 
 			proposal := tdao.privdao.Core.Proposals.GetProposal(test.input.proposalID)
@@ -374,8 +381,6 @@ func TestInstantExecute(t *testing.T) {
 		{carol.String(), []string{}},
 	}
 	tdao := newTestingDAO(t, 0.6, members)
-
-	std.TestSetOriginCaller(alice)
 
 	type testInstantExecuteInput struct {
 		proposalReq daokit.ProposalRequest
@@ -433,8 +438,10 @@ func TestInstantExecute(t *testing.T) {
 				}()
 			}
 
-			std.TestSetOriginCaller(test.input.executor)
-			daokit.InstantExecute(tdao.dao, test.input.proposalReq)
+			func() {
+				testing.SetOriginCaller(test.input.executor)
+			}()
+			tdao.dao.Propose(test.input.proposalReq)
 		})
 	}
 }
@@ -470,7 +477,6 @@ func TestAddMemberProposal(t *testing.T) {
 		t.Errorf("Expected member %s to not be a member", bob.String())
 	}
 
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -502,7 +508,6 @@ func TestAddMemberProposal(t *testing.T) {
 			Roles:   []string{"unknown"},
 		}),
 	}
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithUnknownRole)
 }
 
@@ -520,8 +525,6 @@ func TestRemoveMemberProposal(t *testing.T) {
 	if !tdao.privdao.Members.HasRole(bob.String(), "admin") {
 		t.Errorf("Expected member %s to have role 'admin'", bob.String())
 	}
-
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -544,8 +547,6 @@ func TestAddRoleToUserProposal(t *testing.T) {
 	}
 	tdao := newTestingDAO(t, 0.2, members)
 
-	std.TestSetOriginCaller(alice)
-
 	if tdao.privdao.Members.HasRole(bob.String(), "admin") {
 		t.Errorf("Expected member %s to not have role 'admin'", bob.String())
 	}
@@ -555,7 +556,6 @@ func TestAddRoleToUserProposal(t *testing.T) {
 		Description: "My Proposal Description",
 		Message:     NewAssignRoleMsg(&MsgAssignRole{Address: bob, Role: "admin"}),
 	})
-
 	if !tdao.privdao.Members.HasRole(bob.String(), "admin") {
 		t.Errorf("Expected member %s to have role 'admin'", bob.String())
 	}
@@ -567,7 +567,6 @@ func TestAddRoleToUserProposal(t *testing.T) {
 		}
 	}()
 
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -580,7 +579,6 @@ func TestAddRoleToUserProposal(t *testing.T) {
 		}
 	}()
 
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -593,7 +591,6 @@ func TestAddRoleToUserProposal(t *testing.T) {
 		}
 	}()
 
-	std.TestSetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -617,7 +614,6 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 	if !tdao.privdao.Members.HasRole(bob.String(), "admin") {
 		t.Errorf("Expected member %s to have role 'admin'", bob.String())
 	}
-
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
@@ -639,7 +635,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 		Description: "My Proposal Description",
 		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: alice, Role: "unknown"}),
 	}
-	std.TestSetOriginCaller(alice)
+	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithUnknowkRole)
 
 	defer func() {
@@ -653,7 +649,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 		Description: "My Proposal Description",
 		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: carol, Role: "admin"}),
 	}
-	std.TestSetOriginCaller(alice)
+	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithNonMember)
 
 	defer func() {
@@ -667,7 +663,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 		Description: "My Proposal Description",
 		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: bob, Role: "admin"}),
 	}
-	std.TestSetOriginCaller(alice)
+	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithNonRole)
 }
 
@@ -690,13 +686,12 @@ func newTestingDAO(t *testing.T, threshold float64, members []Member) *testingDA
 		Description:      "My DAO Description",
 		Members:          membersStore,
 		InitialCondition: initialCondition,
-		SetProfileString: func(field, value string) bool { return true },
 		GetProfileString: func(addr std.Address, field, def string) string { return "" },
 	}
 
 	daoRealm := std.NewCodeRealm("gno.land/r/testing/daorealm")
-	std.TestSetOriginCaller(alice)
-	std.TestSetRealm(daoRealm)
+	testing.SetOriginCaller(alice)
+	testing.SetRealm(daoRealm)
 	pubdao, dao := New(conf)
 
 	mockHandlerCalled := false
