@@ -69,6 +69,7 @@ func Create(namespace string, label string, beneficiary std.Address, distrib Dis
 //
 // - If destination is empty, it will send coins to the caller address
 func Claim(id seqid.ID, destination std.Address) {
+	crossing()
 	claimInternal(id, destination, true)
 }
 
@@ -104,6 +105,7 @@ func claimInternal(id seqid.ID, destination std.Address, mustClaim bool) bool {
 //
 // - If destination is empty, it will send coins to the caller address
 func ClaimAll(destination std.Address) {
+	crossing()
 	beneficiary := std.PreviousRealm().Address()
 	claimed := false
 	payrollsByBeneficiary[beneficiary].Iterate("", "", func(key string, value interface{}) bool {
@@ -124,6 +126,7 @@ func ClaimAll(destination std.Address) {
 //
 // - Anyone can fund any vault
 func FundNative(base string, namespace string) {
+	crossing()
 	assertValidNamespace(namespace)
 
 	std.AssertOriginCall()
@@ -160,6 +163,7 @@ func FundNative(base string, namespace string) {
 //
 // - Anyone can fund any vault
 func FundGRC20Reg(base string, namespace string, fqname string, amount int64) {
+	crossing()
 	assertValidNamespace(namespace)
 
 	tokenGetter := grc20reg.MustGet(fqname)
@@ -195,8 +199,9 @@ func fundGRC20(base string, namespace string, token *grc20.Token, tokenKey strin
 		amount = int64(token.Allowance(std.PreviousRealm().Address(), std.CurrentRealm().Address()))
 	}
 
-	teller := token.CallerTeller()
-	if err := teller.TransferFrom(std.PreviousRealm().Address(), std.CurrentRealm().Address(), uint64(amount)); err != nil {
+	// could use subRealmTeller instead to avoid mixing vaults fundings
+	teller := token.RealmTeller()
+	if err := teller.TransferFrom(std.PreviousRealm().Address(), std.CurrentRealm().Address(), amount); err != nil {
 		panic(err)
 	}
 
@@ -210,6 +215,7 @@ func fundGRC20(base string, namespace string, token *grc20.Token, tokenKey strin
 //
 // - If destination is empty, it will send to the caller's address
 func WithdrawFunds(namespace string, denom string, amount int64, destination std.Address) {
+	crossing()
 	assertValidNamespace(namespace)
 
 	if amount < -1 {
@@ -254,18 +260,21 @@ func WithdrawFunds(namespace string, denom string, amount int64, destination std
 
 // Stop terminates the payroll identified by id. It will distribute coins using the payroll's breakup function.
 func Stop(id seqid.ID) {
+	crossing()
 	p := mustGetPayroll(id)
 	p.stop(std.PreviousRealm().Address())
 }
 
 // Pause pauses the payroll identified by id. The payroll will not release coins during the pause.
 func Pause(id seqid.ID) {
+	crossing()
 	p := mustGetPayroll(id)
 	p.pause(std.PreviousRealm().Address())
 }
 
 // Resume resumes the paused payroll identified by id.
 func Resume(id seqid.ID) {
+	crossing()
 	p := mustGetPayroll(id)
 	p.resume(std.PreviousRealm().Address())
 }
