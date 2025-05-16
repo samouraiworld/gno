@@ -83,7 +83,7 @@ func init() {
 			Condition:   adminCond,
 			Handler:     daokit.NewInstantExecuteHandler(),
 			DisplayName: "Create, vote and execute a proposal",
-			Description: "This proposal allows you to create, vote and execute a proposal. Meant to be used in a context where Samourai is a sub-DAO of a bigger DAO.",
+			Description: "This proposal allows you to create, vote and execute a proposal. Meant to be used in a context where Samourai is a member of another DAO",
 		},
 		{
 			Condition:   adminCond,
