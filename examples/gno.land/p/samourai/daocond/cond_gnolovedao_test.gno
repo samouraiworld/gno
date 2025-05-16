@@ -141,15 +141,13 @@ func TestComputeVotingPowers(t *testing.T) {
 				roles = append(roles, "T3")
 			}
 
-			state := &gnolovDaoCondThresholdState{
-				cond: &gnolovDaoCondThreshold{
-					threshold:            0.6,
-					hasRoleFn:            dao.hasRole,
-					roles:                roles,
-					usersWithRoleCountFn: dao.usersWithRoleCount,
-				},
+			cond := &gnolovDaoCondThreshold{
+				threshold:            0.6,
+				hasRoleFn:            dao.hasRole,
+				roles:                roles,
+				usersWithRoleCountFn: dao.usersWithRoleCount,
 			}
-			votingPowers, totalPower := state.computeVotingPowers()
+			votingPowers, totalPower := cond.computeVotingPowers()
 			for tier, expectedPower := range composition.expectedPowers {
 				if votingPowers[tier] != expectedPower {
 					t.Fail()
@@ -289,13 +287,11 @@ func TestEval(t *testing.T) {
 				roles = append(roles, "T3")
 			}
 			cond := GnoloveDAOCondThreshold(tdata.threshold, roles, dao.hasRole, dao.usersWithRoleCount)
-			state := cond.NewState()
-
 			// Get percent of total yes
-			renderData := state.RenderJSON(votes)
+			renderData := cond.RenderJSONWithVotes(votes)
 			totalYesNode, err := renderData.GetKey("totalYes")
 			urequire.NoError(t, err)
-			urequire.Equal(t, tdata.expectedEval, state.Eval(votes))
+			urequire.Equal(t, tdata.expectedEval, cond.Eval(votes))
 			// require totalYes to be equal to expected
 			urequire.Equal(t, tdata.expectedYes, totalYesNode.MustNumeric())
 		})

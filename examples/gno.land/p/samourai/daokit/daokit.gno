@@ -22,7 +22,6 @@ func InstantExecute(d DAO, req ProposalRequest) uint64 {
 type Core struct {
 	Resources *ResourcesStore
 	Proposals *ProposalsStore
-	NoEvents  bool
 }
 
 func NewCore() *Core {
@@ -42,14 +41,6 @@ func (d *Core) Vote(voterID string, proposalID uint64, vote daocond.Vote) {
 		panic("proposal is not open")
 	}
 
-	if !d.NoEvents {
-		e := &daocond.EventVote{
-			VoterID: voterID,
-			Vote:    daocond.Vote(vote),
-		}
-		proposal.ConditionState.HandleEvent(e, proposal.Votes)
-	}
-
 	proposal.Votes[voterID] = daocond.Vote(vote)
 
 }
@@ -64,7 +55,7 @@ func (d *Core) Execute(proposalID uint64) {
 		panic("proposal is not open")
 	}
 
-	if !proposal.ConditionState.Eval(proposal.Votes) {
+	if !proposal.Condition.Eval(proposal.Votes) {
 		panic("proposal condition is not met")
 	}
 
@@ -86,7 +77,7 @@ func (d *Core) Propose(proposerID string, req ProposalRequest) uint64 {
 		panic("message type is not registered as a resource")
 	}
 
-	prop := d.Proposals.newProposal(proposerID, req, resource.Condition.NewState())
+	prop := d.Proposals.newProposal(proposerID, req, resource.Condition)
 	return uint64(prop.ID)
 }
 

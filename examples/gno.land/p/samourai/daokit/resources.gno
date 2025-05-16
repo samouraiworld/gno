@@ -9,6 +9,7 @@ type ResourcesStore struct {
 	Tree *avl.Tree // string -> daocond.Condition
 }
 
+// XXX: should condition be a pointer?
 type Resource struct {
 	Handler     MessageHandler
 	Condition   daocond.Condition

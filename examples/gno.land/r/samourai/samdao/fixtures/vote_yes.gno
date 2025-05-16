@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	samdao.DAO.Vote(1, daocond.VoteYes)
+	samdao.DAO.Vote(5, daocond.VoteYes)
 }

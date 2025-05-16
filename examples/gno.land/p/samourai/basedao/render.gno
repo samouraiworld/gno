@@ -295,7 +295,13 @@ func (d *DAOPrivate) ProposalDetailView(idu uint64) string {
 	s += ufmt.Sprintf("## Title - %s 📜\n\n", proposal.Title)
 	s += ufmt.Sprintf("## Description 📝\n\n%s\n\n", proposal.Description)
 	s += ufmt.Sprintf("## Resource - %s 📦\n\n", proposal.Message.Type())
+	resource := d.Core.Resources.Get(proposal.Message.Type())
+	s += ufmt.Sprintf("  - **Name:** %s\n", resource.DisplayName)
+	s += ufmt.Sprintf("  - **Description:** %s\n", resource.Description)
+	s += ufmt.Sprintf("  - **Condition:** %s\n\n", resource.Condition.Render())
+	s += ("---\n\n")
 	s += proposal.Message.String() + "\n\n"
+	s += ("---\n\n")
 	if proposal.Status == daokit.ProposalStatusOpen {
 		s += ufmt.Sprintf("## Status - Open 🟡\n\n")
 		s += ufmt.Sprintf("[Vote on this proposal 🗳️](%s$help)\n\n", linkPath)
@@ -309,7 +315,7 @@ func (d *DAOPrivate) ProposalDetailView(idu uint64) string {
 	}
 	s += ufmt.Sprintf("> proposed by %s 👤\n\n", proposal.ProposerID)
 	s += ufmt.Sprintf("\n--------------------------------\n")
-	s += ufmt.Sprintf("## Votes 🗳️\n\n%s\n\n", proposal.ConditionState.RenderJSON(proposal.Votes))
+	s += ufmt.Sprintf("## Votes 🗳️\n\n%s\n\n", proposal.Condition.RenderJSONWithVotes(proposal.Votes))
 	s += ufmt.Sprintf("\n--------------------------------\n")
 	return s
 }
