@@ -22,8 +22,8 @@ func TestCondition(t *testing.T) {
 
 	// ressource expressions
 	ressources := map[string]daocond.Condition{
-		"social.post":    daocond.And(publicRelationships, membersMajority),
-		"finance.invest": daocond.Or(financeOfficer, membersMajority),
+		"social.post":    daocond.And([]daocond.Condition{publicRelationships, membersMajority}),
+		"finance.invest": daocond.Or([]daocond.Condition{financeOfficer, membersMajority}),
 	}
 
 	urequire.Equal(t, "[1 public-relationships AND 60% of members]", ressources["social.post"].Render())
