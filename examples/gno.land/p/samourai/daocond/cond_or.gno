@@ -2,53 +2,71 @@ package daocond
 
 import (
 	"math"
+	"strings"
 
 	"gno.land/p/demo/json"
 )
 
 type orCond struct {
-	// XXX: use c slice instead of only two children?
-	left  Condition
-	right Condition
+	conditions []Condition
 }
 
-func Or(left Condition, right Condition) Condition {
-	if left == nil || right == nil {
-		panic("left or right is nil")
+func Or(conditions []Condition) Condition {
+	if len(conditions) < 2 {
+		panic("conditions is empty")
 	}
-	return &orCond{left: left, right: right}
+	return &orCond{conditions: conditions}
 }
 
 // Render implements Condition.
 func (c *orCond) Render() string {
-	return "[" + c.left.Render() + " OR " + c.right.Render() + "]"
+	renders := []string{}
+	for _, condition := range c.conditions {
+		renders = append(renders, condition.Render())
+	}
+	return "[" + strings.Join(renders, " OR ") + "]"
 }
 
 // RenderJSON implements Condition.
 func (c *orCond) RenderJSON() *json.Node {
+	conditionsArray := make([]*json.Node, len(c.conditions))
+	for i, condition := range c.conditions {
+		conditionsArray[i] = condition.RenderJSON()
+	}
 	return json.ObjectNode("", map[string]*json.Node{
-		"type":  json.StringNode("", "or"),
-		"left":  c.left.RenderJSON(),
-		"right": c.right.RenderJSON(),
+		"type":       json.StringNode("", "or"),
+		"conditions": json.ArrayNode("", conditionsArray),
 	})
 }
 
 // Eval implements Condition.
 func (c *orCond) Eval(votes map[string]Vote) bool {
-	return c.left.Eval(votes) || c.right.Eval(votes)
+	for _, condition := range c.conditions {
+		if condition.Eval(votes) {
+			return true
+		}
+	}
+	return false
 }
 
 // Signal implements Condition.
 func (c *orCond) Signal(votes map[string]Vote) float64 {
-	return math.Max(c.left.Signal(votes), c.right.Signal(votes))
+	maxSignal := 0.0
+	for _, condition := range c.conditions {
+		maxSignal = math.Max(maxSignal, condition.Signal(votes))
+	}
+	return maxSignal
 }
 
 // RenderJSONWithVotes implements Condition.
 func (c *orCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
+	conditionsArray := make([]*json.Node, len(c.conditions))
+	for i, condition := range c.conditions {
+		conditionsArray[i] = condition.RenderJSONWithVotes(votes)
+	}
 	return json.ObjectNode("", map[string]*json.Node{
-		"type":  json.StringNode("", "or"),
-		"left":  c.left.RenderJSONWithVotes(votes),
-		"right": c.right.RenderJSONWithVotes(votes),
+		"type":       json.StringNode("", "or"),
+		"conditions": json.ArrayNode("", conditionsArray),
 	})
 }
 
