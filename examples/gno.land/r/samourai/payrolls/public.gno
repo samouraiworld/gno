@@ -166,12 +166,7 @@ func FundGRC20Reg(base string, namespace string, fqname string, amount int64) {
 	crossing()
 	assertValidNamespace(namespace)
 
-	tokenGetter := grc20reg.MustGet(fqname)
-	token := tokenGetter()
-	if token == nil {
-		panic(errors.New("token getter returned nil"))
-	}
-
+	token := grc20reg.MustGet(fqname)
 	fundGRC20(base, namespace, token, "/grc20/"+fqname, amount)
 }
 

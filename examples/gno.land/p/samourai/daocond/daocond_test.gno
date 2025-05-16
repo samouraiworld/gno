@@ -9,7 +9,7 @@ import (
 )
 
 func TestCondition(t *testing.T) {
-	dao := newMockDAO(nil)
+	dao := newMockDAO()
 
 	// leaf conditions
 	membersMajority := daocond.MembersThreshold(0.6, dao.isMember, dao.membersCount)
@@ -38,16 +38,13 @@ type testPhase struct {
 }
 
 type mockDAO struct {
-	emitter   func(evt daocond.Event)
 	members   map[string][]string
 	roles     map[string][]string
-	noEvents  bool
 	resources map[string]daocond.Condition
 }
 
-func newMockDAO(emitter func(evt daocond.Event)) *mockDAO {
+func newMockDAO() *mockDAO {
 	return &mockDAO{
-		emitter: emitter,
 		members: map[string][]string{
 			"alice": []string{"finance-officer"},
 			"bob":   []string{"public-relationships"},
@@ -67,9 +64,6 @@ func (m *mockDAO) assignRole(userId string, role string) {
 		panic(errors.New("unknown member"))
 	}
 	m.members[userId], ok = strsadd(roles, role)
-	if ok && !m.noEvents {
-		m.emitter(&daocond.EventRoleAssigned{UserID: userId, Role: role})
-	}
 }
 
 func (m *mockDAO) unassignRole(userId string, role string) {
@@ -78,9 +72,6 @@ func (m *mockDAO) unassignRole(userId string, role string) {
 		panic(errors.New("unknown member"))
 	}
 	m.members[userId], ok = strsrm(roles, role)
-	if ok && !m.noEvents {
-		m.emitter(&daocond.EventRoleUnassigned{UserID: userId, Role: role})
-	}
 }
 
 func (m *mockDAO) isMember(memberId string) bool {

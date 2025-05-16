@@ -130,7 +130,7 @@ func sendCoins(dst std.Address, coins std.Coins) {
 	}
 
 	for _, coin := range grc20s {
-		err := grc20reg.MustGet(coin.Denom)().RealmTeller().Transfer(dst, coin.Amount)
+		err := grc20reg.MustGet(coin.Denom).RealmTeller().Transfer(dst, coin.Amount)
 		if err != nil {
 			panic(err)
 		}

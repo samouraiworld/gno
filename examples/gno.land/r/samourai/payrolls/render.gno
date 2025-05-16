@@ -454,14 +454,7 @@ func renderCoinAmount(coin std.Coin) string {
 	switch {
 	case strings.HasPrefix(coin.Denom, "/grc20/"):
 		fqdenom := strings.TrimPrefix(coin.Denom, "/grc20/")
-		tokenGetter := grc20reg.Get(fqdenom)
-		if tokenGetter == nil {
-			break
-		}
-		token := tokenGetter()
-		if token == nil {
-			break
-		}
+		token := grc20reg.MustGet(fqdenom)
 		amount := float64(coin.Amount) / float64(math.Pow10(int(token.GetDecimals())))
 		return ufmt.Sprintf("%g", amount)
 	}
@@ -477,15 +470,8 @@ func renderCoinDenom(denom string) string {
 
 	case strings.HasPrefix(denom, "/grc20/"):
 		fqdenom := strings.TrimPrefix(denom, "/grc20/")
-		tokenGetter := grc20reg.Get(fqdenom)
-		if tokenGetter == nil {
-			break
-		}
-		token := tokenGetter()
-		if token == nil {
-			break
-		}
-		return ufmt.Sprintf("[$%s](%s)", tokenGetter().GetSymbol(), strings.TrimPrefix(fqdenom, std.ChainDomain()))
+		token := grc20reg.MustGet(fqdenom)
+		return ufmt.Sprintf("[$%s](%s)", token.GetSymbol(), strings.TrimPrefix(fqdenom, std.ChainDomain()))
 	}
 
 	return denom
