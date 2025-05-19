@@ -13,7 +13,7 @@ func main() {
 	daokit.InstantExecute(samdao.DAO, daokit.ProposalRequest{
 		Title:       "Create a new web3 ticketing platform based on Gno: Zenao",
 		Description: "We wanted to create a project to allow people to organize events and sell tickets for them where each events in itself is a DAO.",
-		Message: samdao.NewNewTechProjectMsg(
+		Message: samdao.NewCreateTechProjectMsg(
 			"Zenao.io",
 			"Zenao allows you to create your own event DAO and sell tickets for it. You can interact with your participants, launch polls, and govern your event by defining the rules.",
 			[]project_manager.Task{

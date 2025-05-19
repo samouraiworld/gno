@@ -9,7 +9,7 @@ func main() {
 	daokit.InstantExecute(samdao.DAO, daokit.ProposalRequest{
 		Title:       "Publish Daokit Roadmap",
 		Description: "A blog post detailing the current and upcoming roadmap for Daokit.",
-		Message: samdao.NewNewPostMsg(
+		Message: samdao.NewCreatePostMsg(
 			"daokit-roadmap",
 			"Daokit Roadmap",
 			`

@@ -52,9 +52,9 @@ func NewChangeCEOMsg(newCEO std.Address) daokit.ExecutableMessage {
 
 // NEW POST
 
-const MsgNewPostKind = "gno.land/r/samourai/samdao.NewPost"
+const MsgCreatePostKind = "gno.land/r/samourai/samdao.CreatePost"
 
-type MsgNewPost struct {
+type MsgCreatePost struct {
 	Slug    string
 	Title   string
 	Body    string
@@ -63,7 +63,7 @@ type MsgNewPost struct {
 	PubDate string
 }
 
-func (m *MsgNewPost) String() string {
+func (m *MsgCreatePost) String() string {
 	s := ""
 	s += ufmt.Sprintf("- New post: **%s**\n\n", m.Title)
 	s += ufmt.Sprintf("- Slug: **%s**\n\n", m.Slug)
@@ -74,9 +74,9 @@ func (m *MsgNewPost) String() string {
 	return s
 }
 
-func NewNewPostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewPostKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewPost)
+func NewCreatePostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgCreatePostKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgCreatePost)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -87,8 +87,8 @@ func NewNewPostHandler(blogTarget *blog.Blog) daokit.MessageHandler {
 	})
 }
 
-func NewNewPostMsg(slug, title, body, pubDate string, authors, tags []string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewPostKind, &MsgNewPost{
+func NewCreatePostMsg(slug, title, body, pubDate string, authors, tags []string) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgCreatePostKind, &MsgCreatePost{
 		Slug:    slug,
 		Title:   title,
 		Body:    body,
@@ -100,19 +100,19 @@ func NewNewPostMsg(slug, title, body, pubDate string, authors, tags []string) da
 
 // NEW STAKEHOLDER
 
-const MsgNewStakeholderKind = "gno.land/r/samourai/samdao.NewStakeholder"
+const MsgAddStakeholderKind = "gno.land/r/samourai/samdao.AddStakeholder"
 
-type MsgNewStakeholder struct {
+type MsgAddStakeholder struct {
 	Address std.Address
 }
 
-func (m *MsgNewStakeholder) String() string {
+func (m *MsgAddStakeholder) String() string {
 	return ufmt.Sprintf("Assign stakeholder role to %s", m.Address)
 }
 
-func NewNewStakeholderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewStakeholderKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewStakeholder)
+func NewAddStakeholderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgAddStakeholderKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgAddStakeholder)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -120,8 +120,8 @@ func NewNewStakeholderHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
 	})
 }
 
-func NewNewStakeholderMsg(address std.Address) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewStakeholderKind, &MsgNewStakeholder{Address: address})
+func NewAddStakeholderMsg(address std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgAddStakeholderKind, &MsgAddStakeholder{Address: address})
 }
 
 // ELECT PROJECT LEAD
@@ -155,16 +155,16 @@ func NewElectDivisionLeaderMsg(division string, address std.Address) daokit.Exec
 
 // NEW MEDIA PROJECT
 
-const MsgNewProdProjectKind = "gno.land/r/samourai/samdao.NewProdProject"
+const MsgCreateProdProjectKind = "gno.land/r/samourai/samdao.CreateProdProject"
 
-type MsgNewProdProject struct {
+type MsgCreateProdProject struct {
 	Name        string
 	Description string
 	Members     []std.Address
 	Tasks       []project_manager.Task
 }
 
-func (m *MsgNewProdProject) String() string {
+func (m *MsgCreateProdProject) String() string {
 	s := ""
 	s += ufmt.Sprintf("New prod project: %s\n", m.Name)
 	s += ufmt.Sprintf("Description: %s\n", m.Description)
@@ -181,9 +181,9 @@ func (m *MsgNewProdProject) String() string {
 	return s
 }
 
-func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewProdProjectKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewProdProject)
+func NewCreateProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgCreateProdProjectKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgCreateProdProject)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -191,22 +191,22 @@ func NewNewProdProjectHandler(pmTarget *project_manager.ProjectManager) daokit.M
 	})
 }
 
-func NewNewProdProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewProdProjectKind, &MsgNewProdProject{Name: name, Description: description, Tasks: tasks, Members: members})
+func NewCreateProdProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgCreateProdProjectKind, &MsgCreateProdProject{Name: name, Description: description, Tasks: tasks, Members: members})
 }
 
 // NEW TECH PROJECT
 
-const MsgNewTechProjectKind = "gno.land/r/samourai/samdao.NewTechProject"
+const MsgCreateTechProjectKind = "gno.land/r/samourai/samdao.CreateTechProject"
 
-type MsgNewTechProject struct {
+type MsgCreateTechProject struct {
 	Name        string
 	Description string
 	Tasks       []project_manager.Task
 	Members     []std.Address
 }
 
-func (m *MsgNewTechProject) String() string {
+func (m *MsgCreateTechProject) String() string {
 	s := ""
 	s += ufmt.Sprintf("New tech project: %s\n\n", m.Name)
 	s += ufmt.Sprintf("Description: %s\n\n", m.Description)
@@ -223,9 +223,9 @@ func (m *MsgNewTechProject) String() string {
 	return s
 }
 
-func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewTechProjectKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewTechProject)
+func NewCreateTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgCreateTechProjectKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgCreateTechProject)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -234,22 +234,22 @@ func NewNewTechProjectHandler(pmTarget *project_manager.ProjectManager) daokit.M
 	})
 }
 
-func NewNewTechProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewTechProjectKind, &MsgNewTechProject{Name: name, Description: description, Tasks: tasks, Members: members})
+func NewCreateTechProjectMsg(name string, description string, tasks []project_manager.Task, members []std.Address) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgCreateTechProjectKind, &MsgCreateTechProject{Name: name, Description: description, Tasks: tasks, Members: members})
 }
 
 // EDIT PAYROLLS
 
-const MsgNewPayrollKind = "gno.land/r/samourai/samdao.NewPayroll"
+const MsgCreatePayrollKind = "gno.land/r/samourai/samdao.CreatePayroll"
 
-type MsgNewPayroll struct {
+type MsgCreatePayroll struct {
 	beneficiary std.Address
 	label       string
 	distrib     payrolls.DistribFn
 	breakup     payrolls.BreakupFn
 }
 
-func (m *MsgNewPayroll) String() string {
+func (m *MsgCreatePayroll) String() string {
 	s := ""
 	if m.distrib == nil {
 		return ufmt.Sprintf("Invalid payrolls: nil distrib\n")
@@ -261,9 +261,9 @@ func (m *MsgNewPayroll) String() string {
 	return s
 }
 
-func NewNewPayrollHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewPayrollKind, func(ipayload interface{}) {
-		msg, ok := ipayload.(*MsgNewPayroll)
+func NewCreatePayrollHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
+	return daokit.NewMessageHandler(MsgCreatePayrollKind, func(ipayload interface{}) {
+		msg, ok := ipayload.(*MsgCreatePayroll)
 		if !ok {
 			panic(errors.New("invalid payload type"))
 		}
@@ -272,6 +272,6 @@ func NewNewPayrollHandler(dao *basedao.DAOPrivate) daokit.MessageHandler {
 	})
 }
 
-func NewNewPayrollMsg(beneficiary std.Address, label string, distrib payrolls.DistribFn, breakup payrolls.BreakupFn) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewPayrollKind, &MsgNewPayroll{beneficiary: beneficiary, label: label, distrib: distrib, breakup: breakup})
+func NewCreatePayrollMsg(beneficiary std.Address, label string, distrib payrolls.DistribFn, breakup payrolls.BreakupFn) daokit.ExecutableMessage {
+	return daokit.NewMessage(MsgCreatePayrollKind, &MsgCreatePayroll{beneficiary: beneficiary, label: label, distrib: distrib, breakup: breakup})
 }

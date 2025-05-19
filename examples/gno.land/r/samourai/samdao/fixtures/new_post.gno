@@ -9,7 +9,7 @@ func main() {
 	daokit.InstantExecute(samdao.DAO, daokit.ProposalRequest{
 		Title:       "Create a new blog post about the Samourai Coop",
 		Description: "This post will be used to explain what the Samourai Coop is and how it works.",
-		Message: samdao.NewNewPostMsg(
+		Message: samdao.NewCreatePostMsg(
 			"why-are-we-called-samourai-coop",
 			"Why are we called Samouraï Coop?",
 			`
