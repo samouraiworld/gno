@@ -3,8 +3,6 @@ package daocond
 import (
 	"math"
 	"strings"
-
-	"gno.land/p/demo/json"
 )
 
 type andCond struct {
@@ -53,30 +51,6 @@ func (c *andCond) RenderWithVotes(votes map[string]Vote) string {
 		renders = append(renders, condition.RenderWithVotes(votes))
 	}
 	return "[" + strings.Join(renders, " AND ") + "]"
-}
-
-// RenderJSON implements ConditionJSONEncoder.
-func (c *andCond) RenderJSON() *json.Node {
-	conditionsArray := make([]*json.Node, len(c.conditions))
-	for i, condition := range c.conditions {
-		conditionsArray[i] = condition.RenderJSON()
-	}
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":       json.StringNode("", "and"),
-		"conditions": json.ArrayNode("", conditionsArray),
-	})
-}
-
-// RenderJSONWithVotes implements ConditionJSONEncoder.
-func (c *andCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
-	conditionsArray := make([]*json.Node, len(c.conditions))
-	for i, condition := range c.conditions {
-		conditionsArray[i] = condition.RenderJSONWithVotes(votes)
-	}
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":       json.StringNode("", "and"),
-		"conditions": json.ArrayNode("", conditionsArray),
-	})
 }
 
 var _ Condition = (*andCond)(nil)

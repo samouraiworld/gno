@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math"
 
-	"gno.land/p/demo/json"
 	"gno.land/p/demo/ufmt"
 )
 
@@ -52,25 +51,6 @@ func (c *membersThresholdCond) RenderWithVotes(votes map[string]Vote) string {
 	s += ufmt.Sprintf("to meet the condition, %g%% of members must vote yes\n\n", c.threshold*100)
 	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(votes), c.membersCountFn(), c.yesRatio(votes)*100)
 	return s
-}
-
-// RenderJSON implements Condition.
-func (c *membersThresholdCond) RenderJSON() *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":      json.StringNode("", "members-threshold"),
-		"threshold": json.NumberNode("", c.threshold),
-	})
-}
-
-// RenderJSONWithVotes implements Condition.
-func (c *membersThresholdCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":         json.StringNode("", "members-threshold"),
-		"threshold":    json.NumberNode("", c.threshold),
-		"totalYes":     json.NumberNode("", float64(c.totalYes(votes))),
-		"totalMembers": json.NumberNode("", float64(c.membersCountFn())),
-		"yesRatio":     json.NumberNode("", c.yesRatio(votes)),
-	})
 }
 
 var _ Condition = (*membersThresholdCond)(nil)

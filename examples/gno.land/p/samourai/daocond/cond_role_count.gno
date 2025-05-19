@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math"
 
-	"gno.land/p/demo/json"
 	"gno.land/p/demo/ufmt"
 )
 
@@ -52,25 +51,6 @@ func (c *roleCountCond) RenderWithVotes(votes map[string]Vote) string {
 	s += ufmt.Sprintf("to meet the condition, %d members with role %s must vote yes\n\n", c.count, c.role)
 	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.totalYes(votes), c.count)
 	return s
-}
-
-// RenderJSON implements ConditionJSONEncoder.
-func (c *roleCountCond) RenderJSON() *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":  json.StringNode("", "role-count"),
-		"role":  json.StringNode("", c.role),
-		"count": json.NumberNode("", float64(c.count)),
-	})
-}
-
-// RenderJSONWithVotes implements ConditionJSONEncoder.
-func (c *roleCountCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":       json.StringNode("", "role-count"),
-		"role":       json.StringNode("", c.role),
-		"yes-ratio":  json.StringNode("", ufmt.Sprintf("%d/%d", c.totalYes(votes), c.count)),
-		"yes-needed": json.NumberNode("", float64(c.count)),
-	})
 }
 
 var _ Condition = (*roleCountCond)(nil)
