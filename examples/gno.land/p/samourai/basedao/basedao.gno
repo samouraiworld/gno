@@ -40,7 +40,6 @@ type Config struct {
 	ImageURI          string
 	Members           *MembersStore
 	NoDefaultHandlers bool
-	NoEvents          bool
 	InitialCondition  daocond.Condition
 	SetProfileString  ProfileStringSetter
 	GetProfileString  ProfileStringGetter
@@ -69,8 +68,6 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 	}
 
 	core := daokit.NewCore()
-	core.NoEvents = conf.NoEvents
-
 	dao := &DAOPrivate{
 		Core:             core,
 		Members:          members,

@@ -8,6 +8,12 @@ import (
 	"gno.land/p/demo/ufmt"
 )
 
+type membersThresholdCond struct {
+	isMemberFn     func(memberId string) bool
+	membersCountFn func() uint64
+	threshold      float64
+}
+
 func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, membersCountFn func() uint64) Condition {
 	if threshold <= 0 || threshold > 1 {
 		panic(errors.New("invalid threshold"))
@@ -25,85 +31,56 @@ func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, 
 	}
 }
 
-type membersThresholdCond struct {
-	isMemberFn     func(memberId string) bool
-	membersCountFn func() uint64
-	threshold      float64
-}
-
-// NewState implements Condition.
-func (m *membersThresholdCond) NewState() State {
-	return &membersThresholdState{
-		cond: m,
-	}
-}
-
 // Render implements Condition.
-func (m *membersThresholdCond) Render() string {
-	return ufmt.Sprintf("%g%% of members", m.threshold*100)
+func (c *membersThresholdCond) Render() string {
+	return ufmt.Sprintf("%g%% of members", c.threshold*100)
 }
 
 // RenderJSON implements Condition.
-func (m *membersThresholdCond) RenderJSON() *json.Node {
+func (c *membersThresholdCond) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":      json.StringNode("", "members-threshold"),
-		"threshold": json.NumberNode("", m.threshold),
+		"threshold": json.NumberNode("", c.threshold),
+	})
+}
+
+// Eval implements Condition.
+func (c *membersThresholdCond) Eval(votes map[string]Vote) bool {
+	return c.yesRatio(votes) >= c.threshold
+}
+
+// Signal implements Condition.
+func (c *membersThresholdCond) Signal(votes map[string]Vote) float64 {
+	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+}
+
+// RenderJSONWithVotes implements Condition.
+func (c *membersThresholdCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":         json.StringNode("", "members-threshold"),
+		"threshold":    json.NumberNode("", c.threshold),
+		"totalYes":     json.NumberNode("", float64(c.totalYes(votes))),
+		"totalMembers": json.NumberNode("", float64(c.membersCountFn())),
+		"yesRatio":     json.NumberNode("", c.yesRatio(votes)),
 	})
 }
 
 var _ Condition = (*membersThresholdCond)(nil)
 
-type membersThresholdState struct {
-	cond     *membersThresholdCond
-	totalYes uint64
+func (c *membersThresholdCond) yesRatio(votes map[string]Vote) float64 {
+	return float64(c.totalYes(votes)) / float64(c.membersCountFn())
 }
 
-// Signal implements State.
-func (m *membersThresholdState) Signal(votes map[string]Vote) float64 {
-	return math.Min(m.yesRatio()/m.cond.threshold, 1)
-}
-
-func (m *membersThresholdState) yesRatio() float64 {
-	return float64(m.totalYes) / float64(m.cond.membersCountFn())
-}
-
-// Eval implements State.
-func (m *membersThresholdState) Eval(_ map[string]Vote) bool {
-	return m.yesRatio() >= m.cond.threshold
-}
-
-// HandleEvent implements State.
-func (m *membersThresholdState) HandleEvent(evt Event, votes map[string]Vote) {
-	switch evt := evt.(type) {
-	case *EventVote:
-		if !m.cond.isMemberFn(evt.VoterID) {
-			return
+func (c *membersThresholdCond) totalYes(votes map[string]Vote) uint64 {
+	totalYes := uint64(0)
+	for userId, vote := range votes {
+		if vote != VoteYes {
+			continue
 		}
-		previousVote := votes[evt.VoterID]
-		if previousVote == VoteYes && evt.Vote != VoteYes {
-			m.totalYes -= 1
-		} else if previousVote != VoteYes && evt.Vote == VoteYes {
-			m.totalYes += 1
+		if !c.isMemberFn(userId) {
+			continue
 		}
-
-	case *EventMemberAdded:
-		if votes[evt.MemberID] == VoteYes {
-			m.totalYes += 1
-		}
-
-	case *EventMemberRemoved:
-		if votes[evt.MemberID] == VoteYes {
-			m.totalYes -= 1
-		}
+		totalYes += 1
 	}
+	return totalYes
 }
-
-// RenderJSON implements State.
-func (m *membersThresholdState) RenderJSON(_ map[string]Vote) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":     json.StringNode("", "members-threshold"),
-		"totalYes": json.NumberNode("", float64(m.totalYes)),
-	})
-}
-
-var _ State = (*membersThresholdState)(nil)

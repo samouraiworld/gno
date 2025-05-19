@@ -2,72 +2,72 @@ package daocond
 
 import (
 	"math"
+	"strings"
 
 	"gno.land/p/demo/json"
 )
 
-func And(left Condition, right Condition) Condition {
-	if left == nil || right == nil {
-		panic("left or right is nil")
-	}
-	return &andCond{left: left, right: right}
-}
-
 type andCond struct {
-	// XXX: use a slice instead of only two children?
-	left  Condition
-	right Condition
+	conditions []Condition
 }
 
-// NewState implements Condition.
-func (a *andCond) NewState() State {
-	return &andState{left: a.left.NewState(), right: a.right.NewState()}
+func And(conditions ...Condition) Condition {
+	if len(conditions) < 2 {
+		panic("at least two conditions are required")
+	}
+	return &andCond{conditions: conditions}
 }
 
 // Render implements Condition.
-func (a *andCond) Render() string {
-	return "[" + a.left.Render() + " AND " + a.right.Render() + "]"
+func (c *andCond) Render() string {
+	renders := []string{}
+	for _, condition := range c.conditions {
+		renders = append(renders, condition.Render())
+	}
+	return "[" + strings.Join(renders, " AND ") + "]"
 }
 
 // RenderJSON implements Condition.
-func (a *andCond) RenderJSON() *json.Node {
+func (c *andCond) RenderJSON() *json.Node {
+	conditionsArray := make([]*json.Node, len(c.conditions))
+	for i, condition := range c.conditions {
+		conditionsArray[i] = condition.RenderJSON()
+	}
 	return json.ObjectNode("", map[string]*json.Node{
-		"type":  json.StringNode("", "and"),
-		"left":  a.left.RenderJSON(),
-		"right": a.right.RenderJSON(),
+		"type":       json.StringNode("", "and"),
+		"conditions": json.ArrayNode("", conditionsArray),
+	})
+}
+
+// Eval implements Condition.
+func (c *andCond) Eval(votes map[string]Vote) bool {
+	for _, condition := range c.conditions {
+		if !condition.Eval(votes) {
+			return false
+		}
+	}
+	return true
+}
+
+// Signal implements Condition.
+func (c *andCond) Signal(votes map[string]Vote) float64 {
+	minSignal := 1.0
+	for _, condition := range c.conditions {
+		minSignal = math.Min(minSignal, condition.Signal(votes))
+	}
+	return minSignal
+}
+
+// RenderJSONWithVotes implements Condition.
+func (c *andCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
+	conditionsArray := make([]*json.Node, len(c.conditions))
+	for i, condition := range c.conditions {
+		conditionsArray[i] = condition.RenderJSONWithVotes(votes)
+	}
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":       json.StringNode("", "and"),
+		"conditions": json.ArrayNode("", conditionsArray),
 	})
 }
 
 var _ Condition = (*andCond)(nil)
-
-type andState struct {
-	left  State
-	right State
-}
-
-// Signal implements State.
-func (a *andState) Signal(votes map[string]Vote) float64 {
-	return math.Min(a.left.Signal(votes), a.right.Signal(votes))
-}
-
-// RenderJSON implements State.
-func (a *andState) RenderJSON(votes map[string]Vote) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":  json.StringNode("", "and"),
-		"left":  a.left.RenderJSON(votes),
-		"right": a.right.RenderJSON(votes),
-	})
-}
-
-// Eval implements State.
-func (a *andState) Eval(votes map[string]Vote) bool {
-	return a.left.Eval(votes) && a.right.Eval(votes)
-}
-
-// HandleEvent implements State.
-func (a *andState) HandleEvent(evt Event, votes map[string]Vote) {
-	a.left.HandleEvent(evt, votes)
-	a.right.HandleEvent(evt, votes)
-}
-
-var _ State = (*andState)(nil)

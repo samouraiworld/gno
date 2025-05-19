@@ -17,6 +17,7 @@ var (
 	daoPrivate *basedao.DAOPrivate
 )
 
+// TODO: add a little bit more complexity to show daocond initialization
 func init() {
 	initialRoles := []role_manager.RoleInfo{
 		{Name: "admin", Description: "Admin is the superuser"},

@@ -8,6 +8,12 @@ import (
 	"gno.land/p/demo/ufmt"
 )
 
+type roleCountCond struct {
+	hasRoleFn func(memberId string, role string) bool
+	count     uint64
+	role      string
+}
+
 func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role string) bool) Condition {
 	if count == 0 {
 		panic(errors.New("count must be greater than 0"))
@@ -25,97 +31,52 @@ func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role s
 	}
 }
 
-type roleCountCond struct {
-	hasRoleFn func(memberId string, role string) bool
-	count     uint64
-	role      string
-}
-
-// NewState implements Condition.
-func (m *roleCountCond) NewState() State {
-	return &roleCountState{
-		cond: m,
-	}
-}
-
 // Render implements Condition.
-func (m *roleCountCond) Render() string {
-	return ufmt.Sprintf("%d %s", m.count, m.role)
+func (c *roleCountCond) Render() string {
+	return ufmt.Sprintf("%d %s", c.count, c.role)
 }
 
 // RenderJSON implements Condition.
-func (m *roleCountCond) RenderJSON() *json.Node {
+func (c *roleCountCond) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":  json.StringNode("", "role-count"),
-		"role":  json.StringNode("", m.role),
-		"count": json.NumberNode("", float64(m.count)),
+		"role":  json.StringNode("", c.role),
+		"count": json.NumberNode("", float64(c.count)),
+	})
+}
+
+// Eval implements Condition.
+func (c *roleCountCond) Eval(votes map[string]Vote) bool {
+	return c.totalYes(votes) >= c.count
+}
+
+// Signal implements Condition.
+func (c *roleCountCond) Signal(votes map[string]Vote) float64 {
+	return math.Min(float64(c.totalYes(votes))/float64(c.count), 1)
+}
+
+// RenderJSONWithVotes implements Condition.
+func (c *roleCountCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":       json.StringNode("", "role-count"),
+		"role":       json.StringNode("", c.role),
+		"yes-ratio":  json.StringNode("", ufmt.Sprintf("%d/%d", c.totalYes(votes), c.count)),
+		"yes-needed": json.NumberNode("", float64(c.count)),
 	})
 }
 
 var _ Condition = (*roleCountCond)(nil)
 
-type roleCountState struct {
-	cond     *roleCountCond
-	totalYes uint64
-}
-
-// Signal implements State.
-func (m *roleCountState) Signal(votes map[string]Vote) float64 {
-	return math.Min(float64(m.totalYes)/float64(m.cond.count), 1)
-}
-
-// Eval implements State.
-func (m *roleCountState) Eval(_ map[string]Vote) bool {
-	return m.totalYes >= m.cond.count
-}
-
-// HandleEvent implements State.
-func (m *roleCountState) HandleEvent(evt Event, votes map[string]Vote) {
-	switch evt := evt.(type) {
-	case *EventVote:
-		if !m.cond.hasRoleFn(evt.VoterID, m.cond.role) {
-			return
+func (c *roleCountCond) totalYes(votes map[string]Vote) uint64 {
+	totalYes := uint64(0)
+	for userId, vote := range votes {
+		if vote != VoteYes {
+			continue
 		}
-		previousVote := votes[evt.VoterID]
-		if previousVote == VoteYes && evt.Vote != VoteYes {
-			m.totalYes -= 1
+		if !c.hasRoleFn(userId, c.role) {
+			continue
 		}
-		if previousVote != VoteYes && evt.Vote == VoteYes {
-			m.totalYes += 1
-		}
-
-	case *EventRoleAssigned:
-		if evt.Role != m.cond.role {
-			return
-		}
-		vote := votes[evt.UserID]
-		if vote == VoteYes {
-			m.totalYes += 1
-		}
-
-	case *EventRoleUnassigned:
-		if evt.Role != m.cond.role {
-			return
-		}
-		vote := votes[evt.UserID]
-		if vote == VoteYes {
-			m.totalYes -= 1
-		}
-
-	case *EventRoleRemoved:
-		if evt.Role != m.cond.role {
-			return
-		}
-		m.totalYes = 0
+		totalYes += 1
 	}
+	return totalYes
 }
-
-// RenderJSON implements State.
-func (m *roleCountState) RenderJSON(_ map[string]Vote) *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":     json.StringNode("", "role-count"),
-		"totalYes": json.NumberNode("", float64(m.totalYes)),
-	})
-}
-
-var _ State = (*roleCountState)(nil)

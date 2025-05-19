@@ -258,7 +258,7 @@ func TestVote(t *testing.T) {
 				urequire.NotPanics(t, run)
 				urequire.False(t, *tdao.mockHandlerCalled, "execute should not be called")
 				proposal := tdao.privdao.Core.Proposals.GetProposal(test.input.proposalID)
-				eval := proposal.ConditionState.Eval(proposal.Votes)
+				eval := proposal.Condition.Eval(proposal.Votes)
 				if eval != test.expected.eval {
 					t.Errorf("Expected eval %t, got %t", test.expected.eval, eval)
 				}
