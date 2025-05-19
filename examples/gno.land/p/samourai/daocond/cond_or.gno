@@ -18,27 +18,6 @@ func Or(conditions ...Condition) Condition {
 	return &orCond{conditions: conditions}
 }
 
-// Render implements Condition.
-func (c *orCond) Render() string {
-	renders := []string{}
-	for _, condition := range c.conditions {
-		renders = append(renders, condition.Render())
-	}
-	return "[" + strings.Join(renders, " OR ") + "]"
-}
-
-// RenderJSON implements Condition.
-func (c *orCond) RenderJSON() *json.Node {
-	conditionsArray := make([]*json.Node, len(c.conditions))
-	for i, condition := range c.conditions {
-		conditionsArray[i] = condition.RenderJSON()
-	}
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":       json.StringNode("", "or"),
-		"conditions": json.ArrayNode("", conditionsArray),
-	})
-}
-
 // Eval implements Condition.
 func (c *orCond) Eval(votes map[string]Vote) bool {
 	for _, condition := range c.conditions {
@@ -56,6 +35,36 @@ func (c *orCond) Signal(votes map[string]Vote) float64 {
 		maxSignal = math.Max(maxSignal, condition.Signal(votes))
 	}
 	return maxSignal
+}
+
+// Render implements Condition.
+func (c *orCond) Render() string {
+	renders := []string{}
+	for _, condition := range c.conditions {
+		renders = append(renders, condition.Render())
+	}
+	return "[" + strings.Join(renders, " OR ") + "]"
+}
+
+// RenderWithVotes implements Condition.
+func (c *orCond) RenderWithVotes(votes map[string]Vote) string {
+	renders := []string{}
+	for _, condition := range c.conditions {
+		renders = append(renders, condition.RenderWithVotes(votes))
+	}
+	return "[" + strings.Join(renders, " OR ") + "]"
+}
+
+// RenderJSON implements Condition.
+func (c *orCond) RenderJSON() *json.Node {
+	conditionsArray := make([]*json.Node, len(c.conditions))
+	for i, condition := range c.conditions {
+		conditionsArray[i] = condition.RenderJSON()
+	}
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":       json.StringNode("", "or"),
+		"conditions": json.ArrayNode("", conditionsArray),
+	})
 }
 
 // RenderJSONWithVotes implements Condition.

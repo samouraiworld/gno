@@ -31,19 +31,6 @@ func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, 
 	}
 }
 
-// Render implements Condition.
-func (c *membersThresholdCond) Render() string {
-	return ufmt.Sprintf("%g%% of members", c.threshold*100)
-}
-
-// RenderJSON implements Condition.
-func (c *membersThresholdCond) RenderJSON() *json.Node {
-	return json.ObjectNode("", map[string]*json.Node{
-		"type":      json.StringNode("", "members-threshold"),
-		"threshold": json.NumberNode("", c.threshold),
-	})
-}
-
 // Eval implements Condition.
 func (c *membersThresholdCond) Eval(votes map[string]Vote) bool {
 	return c.yesRatio(votes) >= c.threshold
@@ -52,6 +39,27 @@ func (c *membersThresholdCond) Eval(votes map[string]Vote) bool {
 // Signal implements Condition.
 func (c *membersThresholdCond) Signal(votes map[string]Vote) float64 {
 	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+}
+
+// Render implements Condition.
+func (c *membersThresholdCond) Render() string {
+	return ufmt.Sprintf("%g%% of members", c.threshold*100)
+}
+
+// RenderWithVotes implements Condition.
+func (c *membersThresholdCond) RenderWithVotes(votes map[string]Vote) string {
+	s := ""
+	s += ufmt.Sprintf("to meet the condition, %g%% of members must vote yes\n\n", c.threshold*100)
+	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(votes), c.membersCountFn(), c.yesRatio(votes)*100)
+	return s
+}
+
+// RenderJSON implements Condition.
+func (c *membersThresholdCond) RenderJSON() *json.Node {
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":      json.StringNode("", "members-threshold"),
+		"threshold": json.NumberNode("", c.threshold),
+	})
 }
 
 // RenderJSONWithVotes implements Condition.

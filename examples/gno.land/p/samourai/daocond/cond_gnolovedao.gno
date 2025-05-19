@@ -41,6 +41,16 @@ func GnoloveDAOCondThreshold(threshold float64, roles []string, hasRoleFn func(m
 	}
 }
 
+// Eval implements Condition.
+func (c *gnolovDaoCondThreshold) Eval(votes map[string]Vote) bool {
+	return c.yesRatio(votes) >= c.threshold
+}
+
+// Signal implements Condition.
+func (c *gnolovDaoCondThreshold) Signal(votes map[string]Vote) float64 {
+	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+}
+
 // Render implements Condition.
 func (c *gnolovDaoCondThreshold) Render() string {
 	rolePowers := []string{}
@@ -51,22 +61,28 @@ func (c *gnolovDaoCondThreshold) Render() string {
 	return ufmt.Sprintf("%g%% of total voting power | %s", c.threshold*100, strings.Join(rolePowers, " | "))
 }
 
+// RenderWithVotes implements Condition.
+func (c *gnolovDaoCondThreshold) RenderWithVotes(votes map[string]Vote) string {
+	vPowers, totalPower := c.computeVotingPowers()
+	rolePowers := []string{}
+	for _, role := range c.roles {
+		weight := strconv.FormatFloat(vPowers[role], 'f', 2, 64) // ufmt.Sprintf("%.2f", ...) is not working
+		rolePowers = append(rolePowers, ufmt.Sprintf("%s => %s power", role, weight))
+	}
+	s := ""
+	s += ufmt.Sprintf("%g%% of total voting power | %s\n\n", c.threshold*100, strings.Join(rolePowers, " | "))
+	s += ufmt.Sprintf("Threshold needed: %g%% of total voting power\n\n", c.threshold*100)
+	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.yesRatio(votes), totalPower)
+	s += ufmt.Sprintf("Voting power needed: %g%% of total voting power\n\n", c.threshold*totalPower)
+	return s
+}
+
 // RenderJSON implements Condition.
 func (c *gnolovDaoCondThreshold) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":      json.StringNode("", "gnolovedao-threshold"),
 		"threshold": json.NumberNode("", c.threshold),
 	})
-}
-
-// Eval implements Condition.
-func (c *gnolovDaoCondThreshold) Eval(votes map[string]Vote) bool {
-	return c.yesRatio(votes) >= c.threshold
-}
-
-// Signal implements Condition.
-func (c *gnolovDaoCondThreshold) Signal(votes map[string]Vote) float64 {
-	return math.Min(c.yesRatio(votes)/c.threshold, 1)
 }
 
 // RenderJSONWithVotes implements Condition.

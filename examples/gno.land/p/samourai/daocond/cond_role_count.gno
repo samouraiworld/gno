@@ -31,9 +31,27 @@ func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role s
 	}
 }
 
+// Eval implements Condition.
+func (c *roleCountCond) Eval(votes map[string]Vote) bool {
+	return c.totalYes(votes) >= c.count
+}
+
+// Signal implements Condition.
+func (c *roleCountCond) Signal(votes map[string]Vote) float64 {
+	return math.Min(float64(c.totalYes(votes))/float64(c.count), 1)
+}
+
 // Render implements Condition.
 func (c *roleCountCond) Render() string {
 	return ufmt.Sprintf("%d %s", c.count, c.role)
+}
+
+// RenderWithVotes implements Condition.
+func (c *roleCountCond) RenderWithVotes(votes map[string]Vote) string {
+	s := ""
+	s += ufmt.Sprintf("to meet the condition, %d members with role %s must vote yes\n\n", c.count, c.role)
+	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.totalYes(votes), c.count)
+	return s
 }
 
 // RenderJSON implements Condition.
@@ -43,16 +61,6 @@ func (c *roleCountCond) RenderJSON() *json.Node {
 		"role":  json.StringNode("", c.role),
 		"count": json.NumberNode("", float64(c.count)),
 	})
-}
-
-// Eval implements Condition.
-func (c *roleCountCond) Eval(votes map[string]Vote) bool {
-	return c.totalYes(votes) >= c.count
-}
-
-// Signal implements Condition.
-func (c *roleCountCond) Signal(votes map[string]Vote) float64 {
-	return math.Min(float64(c.totalYes(votes))/float64(c.count), 1)
 }
 
 // RenderJSONWithVotes implements Condition.

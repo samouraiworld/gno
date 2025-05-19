@@ -33,9 +33,27 @@ func RoleThreshold(threshold float64, role string, hasRoleFn func(memberId strin
 	}
 }
 
+// Eval implements Condition.
+func (c *roleThresholdCond) Eval(votes map[string]Vote) bool {
+	return c.yesRatio(votes) >= c.threshold
+}
+
+// Signal implements Condition.
+func (c *roleThresholdCond) Signal(votes map[string]Vote) float64 {
+	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+}
+
 // Render implements Condition.
 func (c *roleThresholdCond) Render() string {
 	return ufmt.Sprintf("%g%% of %s members", c.threshold*100, c.role)
+}
+
+// RenderWithVotes implements Condition.
+func (c *roleThresholdCond) RenderWithVotes(votes map[string]Vote) string {
+	s := ""
+	s += ufmt.Sprintf("To meet the condition, %g%% of %s members with role %s must vote yes\n\n", c.threshold*100, c.role)
+	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(votes), c.usersRoleCountFn(c.role), c.yesRatio(votes)*100)
+	return s
 }
 
 // RenderJSON implements Condition.
@@ -45,16 +63,6 @@ func (c *roleThresholdCond) RenderJSON() *json.Node {
 		"role":      json.StringNode("", c.role),
 		"threshold": json.NumberNode("", c.threshold),
 	})
-}
-
-// Eval implements Condition.
-func (c *roleThresholdCond) Eval(votes map[string]Vote) bool {
-	return c.yesRatio(votes) >= c.threshold
-}
-
-// Signal implements Condition.
-func (c *roleThresholdCond) Signal(votes map[string]Vote) float64 {
-	return math.Min(c.yesRatio(votes)/c.threshold, 1)
 }
 
 // RenderJSONWithVotes implements Condition.
