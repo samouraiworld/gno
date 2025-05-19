@@ -11,9 +11,9 @@ type andCond struct {
 	conditions []Condition
 }
 
-func And(conditions []Condition) Condition {
+func And(conditions ...Condition) Condition {
 	if len(conditions) < 2 {
-		panic("conditions is empty")
+		panic("at least two conditions are required")
 	}
 	return &andCond{conditions: conditions}
 }

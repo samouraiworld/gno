@@ -11,9 +11,9 @@ type orCond struct {
 	conditions []Condition
 }
 
-func Or(conditions []Condition) Condition {
+func Or(conditions ...Condition) Condition {
 	if len(conditions) < 2 {
-		panic("conditions is empty")
+		panic("at least two conditions are required")
 	}
 	return &orCond{conditions: conditions}
 }
