@@ -28,7 +28,7 @@ func (d *DAOPrivate) initRenderingRouter() {
 	}
 }
 
-func (d *DAOPrivate) LoadDefaultHandlers() {
+func (d *DAOPrivate) InitDefaultRendering() {
 	d.RenderRouter.HandleFunc(HOME_PATH, d.MuxHomePage)
 	d.RenderRouter.HandleFunc(HOME_NO_PROFILE_PATH, d.MuxHomePage)
 	d.RenderRouter.HandleFunc(CONFIG_PATH, d.MuxConfigPage)

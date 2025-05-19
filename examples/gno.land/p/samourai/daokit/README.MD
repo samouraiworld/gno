@@ -190,10 +190,21 @@ func init() {
 		{Address: "g16jv...6e0r", Roles: []string{}},
 	}
 
+	// create the member store now to be able to use it in the condition
+	memberStore := basedao.NewMembersStore(initialRoles, initialMembers)
+
+	membersMajority := daocond.MembersThreshold(0.6, memberStore.IsMember, memberStore.MembersCount)
+	publicRelationships := daocond.RoleCount(1, "public-relationships", memberStore.HasRole)
+	financeOfficer := daocond.RoleCount(1, "finance-officer", memberStore.HasRole)
+
+	// and & or use va_args so you can pass as many conditions as you want
+	adminCond := daocond.And(membersMajority, publicRelationships, financeOfficer)
+
 	DAO, daoPrivate = basedao.New(&basedao.Config{
 		Name:             "Demo DAOKIT DAO",
 		Description:      "This is a demo DAO built with DAOKIT",
-		Members:          basedao.NewMembersStore(initialRoles, initialMembers),
+		Members:          memberStore,
+		InitialCondition: adminCond,
 		GetProfileString: profile.GetStringField,
 		SetProfileString: profile.SetStringField,
 	})

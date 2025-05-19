@@ -35,15 +35,16 @@ type DAOPrivate struct {
 }
 
 type Config struct {
-	Name              string
-	Description       string
-	ImageURI          string
-	Members           *MembersStore
-	NoDefaultHandlers bool
-	InitialCondition  daocond.Condition
-	SetProfileString  ProfileStringSetter
-	GetProfileString  ProfileStringGetter
-	NoCreationEvent   bool
+	Name               string
+	Description        string
+	ImageURI           string
+	Members            *MembersStore
+	NoDefaultHandlers  bool
+	NoDefaultRendering bool
+	InitialCondition   daocond.Condition
+	SetProfileString   ProfileStringSetter
+	GetProfileString   ProfileStringGetter
+	NoCreationEvent    bool
 }
 
 type ProfileStringSetter func(field string, value string) bool
@@ -75,6 +76,10 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 		Realm:            std.CurrentRealm(),
 	}
 	dao.initRenderingRouter()
+
+	if !conf.NoDefaultRendering {
+		dao.InitDefaultRendering()
+	}
 
 	if conf.SetProfileString != nil {
 		cross(conf.SetProfileString)("DisplayName", conf.Name)
