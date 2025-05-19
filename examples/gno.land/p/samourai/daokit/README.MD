@@ -7,16 +7,20 @@ Daokit is a gnolang package for creating complex DAO models. It introduces a new
 # 2. Why daokit ?
 
 The advantages:
-- Role system to represent the organization & responsabilities of the members
 - Condition system to create complex proposals combining roles, counting, percentages, logical operations, etc.
+- Role system to represent the organization & responsabilities of the members
 
 ## 2.1 Key Concepts
 
 To understand how it works, here are three fundamental concepts:
 
-- **Role:** A label assigned to a user (or entity) that grants specific **permissions and governance power** based on the organization’s structure.
-- **Resource:** An executable action within the DAO, triggered through the **proposal system**.
+- **Proposal:** A proposal is a request to execute a resource (an action) as the organization itself. A proposal is created by a member and other members can vote on it. A proposal use the condition attached the resource to evaluate if the proposal can be executed. A proposal can have different states like: open, executed, closed.
+- **Resource:** An executable action within the DAO, triggered through the **proposal system**. A resource also contains a condition that must be met before the proposal can be executed.
 - **Condition:** A set of **rules attached to a resource**, which must be met before the corresponding proposal can be executed.
+
+BaseDAO is a wrapper of the daokit core package that handles the members & roles through the role manager pkg.
+
+A central concept but not fundamental is the **Role**. A role is a label assigned to a user (or entity) that grants specific **permissions and governance power** based on the organization’s structure. you can create organization without roles, but using it in combination with daocond will allow you to create more complex proposals.
 
 To give an example of how this key concepts interacts, let's consider a DAO that wants to create a proposal to **spend money** from the DAO's treasury.
 
@@ -39,25 +43,39 @@ the daokit framework is based on the following packages:
 
 ``daocond`` is a package that allows to create conditions (treshold, count, etc) can be combined with roles but is package agnostic and takes function as parameter.
 
-Here is the ``Condition`` and ``State`` interface:
+Here is the ``Condition`` interface:
 
 ```go
+
 type Condition interface {
-	NewState() State
+	Eval(votes map[string]Vote) bool
+	Signal(votes map[string]Vote) float64
 
 	Render() string
-	RenderJSON() *json.Node
-}
-
-type State interface {
-	Eval(votes map[string]Vote) bool
-	HandleEvent(event Event, votes map[string]Vote) // optional but allow to handle some scaling problems
-
-	RenderJSON(votes map[string]Vote) *json.Node
+	RenderWithVotes(votes map[string]Vote) string
 }
 ```
 
-A condition is a state factory, each proposal is meant to generate a new state based on the condition attached to the resource of the proposal.
+A condition does not handle the voting process & storage, it only evaluate if the condition is met based on the votes.
+
+We have conditions for membertreshold, roles treshold, roles count ...etc
+
+```go
+func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, membersCountFn func() uint64) Condition
+func RoleThreshold(threshold float64, role string, hasRoleFn func(memberId string, role string) bool, usersRoleCountFn func(role string) uint32) Condition
+func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role string) bool) Condition
+```
+
+We also have conditions that can be used to build more complex conditions using logical operators like AND & OR.
+
+```go
+func And(conditions ...Condition) Condition
+func Or(conditions ...Condition) Condition
+```
+
+But feel free to create your own conditions based on your own needs & external resources.
+
+We decided to make our conditions stateless first because adding state add some drawbacks depending on the structure (size, and kind of proposals) of the DAO.
 
 ## 3.2 daokit
 
@@ -69,11 +87,8 @@ Here is the ``Core`` structure:
 type Core struct {
 	Resources *ResourcesStore
 	Proposals *ProposalsStore
-	NoEvents  bool
 }
 ```
-
-``NoEvents`` is just here to choose if we want to emit events or not.
 
 ``daokit`` package also provide an interface for the public usage of the DAO:
 
@@ -85,7 +100,7 @@ type DAO interface {
 }
 ```
 
-``daokit`` also provide an ``Action`` and ``ActionHandler`` interface used to create new resources and handlers for DAOs, discover more in the [5.]
+``daokit`` also provide an ``Action`` and ``ActionHandler`` interface used to create new resources and handlers for DAOs, discover more in the [5. Create Custom Resources](#5-create-custom-resources) section.
 
 ## 3.3 role_manager
 
@@ -132,7 +147,6 @@ type Config struct {
 	ImageURI          string
 	Members           *MembersStore
 	NoDefaultHandlers bool
-	NoEvents          bool
 	InitialCondition  daocond.Condition
 	SetProfileString  ProfileStringSetter
 	GetProfileString  ProfileStringGetter
@@ -144,8 +158,7 @@ type Config struct {
 - The ``ProfileStringSetter`` and ``ProfileStringGetter`` are just here to set and get the profile of the DAO. could be the functions from the ``/r/demo/profile`` package for example.
 - The ``InitialCondition`` is meant to be attached to the default resources of the DAO.
 - The ``NoDefaultHandlers`` is just here to enable/disable the default handlers of the DAO.
-- ``NoEvents`` will disable the events emission of the DAO.
-- ``NoCreationEvent`` will disable the specific event emitted when the DAO is created.
+- ``NoCreationEvent`` will disable the event emitted when the DAO is created.
 
 # 4. Code example of a basic DAO
 
@@ -286,5 +299,3 @@ func init() {
 ```
 
 Now as the author of the package blog, my users can easily use the blog package within their DAO without having to implement the ``Action`` and ``ActionHandler`` interface.
-
-If you want an advanced example of how to use the ``daokit`` package, you can take a look at the ``./r/samourai/samdao`` realm that is a representation of the real-world organization Samourai Coop including project management, payrolls, blog posts ...etc
