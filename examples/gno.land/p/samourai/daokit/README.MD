@@ -18,8 +18,6 @@ To understand how it works, here are three fundamental concepts:
 - **Resource:** An executable action within the DAO, triggered through the **proposal system**. A resource also contains a condition that must be met before the proposal can be executed.
 - **Condition:** A set of **rules attached to a resource**, which must be met before the corresponding proposal can be executed.
 
-BaseDAO is a wrapper of the daokit core package that handles the members & roles through the role manager pkg.
-
 A central concept but not fundamental is the **Role**. A role is a label assigned to a user (or entity) that grants specific **permissions and governance power** based on the organization’s structure. you can create organization without roles, but using it in combination with daocond will allow you to create more complex proposals.
 
 To give an example of how this key concepts interacts, let's consider a DAO that wants to create a proposal to **spend money** from the DAO's treasury.
