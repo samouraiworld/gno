@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gno.land/p/demo/json"
 	"gno.land/p/demo/ufmt"
 )
 
@@ -74,6 +75,33 @@ func (c *gnolovDaoCondThreshold) RenderWithVotes(votes map[string]Vote) string {
 	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.yesRatio(votes), totalPower)
 	s += ufmt.Sprintf("Voting power needed: %g%% of total voting power\n\n", c.threshold*totalPower)
 	return s
+}
+
+// RenderJSON implements ConditionJSONEncoder.
+func (c *gnolovDaoCondThreshold) RenderJSON() *json.Node {
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":      json.StringNode("", "gnolovedao-threshold"),
+		"threshold": json.NumberNode("", c.threshold),
+	})
+}
+
+// RenderJSONWithVotes implements ConditionJSONEncoder.
+func (c *gnolovDaoCondThreshold) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
+	vPowers, totalPower := c.computeVotingPowers()
+	rolePowers := []string{}
+	for _, role := range c.roles {
+		weight := strconv.FormatFloat(vPowers[role], 'f', 2, 64) // ufmt.Sprintf("%.2f", ...) is not working
+		rolePowers = append(rolePowers, ufmt.Sprintf("%s => %s power", role, weight))
+	}
+
+	return json.ObjectNode("", map[string]*json.Node{
+		"type":              json.StringNode("", "gnolovedao-threshold"),
+		"threshold":         json.NumberNode("", c.threshold),
+		"powerSplit":        json.StringNode("", strings.Join(rolePowers, " | ")),
+		"totalYes":          json.NumberNode("", c.yesRatio(votes)),
+		"votingPowerNeeded": json.NumberNode("", c.threshold*totalPower),
+		"totalVotingPower":  json.NumberNode("", totalPower),
+	})
 }
 
 var _ Condition = (*gnolovDaoCondThreshold)(nil)

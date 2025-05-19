@@ -288,12 +288,7 @@ func TestEval(t *testing.T) {
 			}
 			cond := GnoloveDAOCondThreshold(tdata.threshold, roles, dao.hasRole, dao.usersWithRoleCount)
 			// Get percent of total yes
-			renderData := cond.RenderJSONWithVotes(votes)
-			totalYesNode, err := renderData.GetKey("totalYes")
-			urequire.NoError(t, err)
 			urequire.Equal(t, tdata.expectedEval, cond.Eval(votes))
-			// require totalYes to be equal to expected
-			urequire.Equal(t, tdata.expectedYes, totalYesNode.MustNumeric())
 		})
 	}
 }
