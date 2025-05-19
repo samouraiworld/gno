@@ -113,7 +113,7 @@ func TestPropose(t *testing.T) {
 				panic: true,
 			},
 		},
-		"Unknown message type": {
+		"Unknown action type": {
 			input: testNewProposalInput{
 				proposalReq: tdao.unknownProposalRequest,
 				proposer:    alice,
@@ -152,8 +152,8 @@ func TestPropose(t *testing.T) {
 			if proposal.ProposerID != test.expected.proposer.String() {
 				t.Errorf("Expected proposer %s, got %s", test.expected.proposer, proposal.ProposerID)
 			}
-			if proposal.Message.Type() != test.expected.messsageType {
-				t.Errorf("Expected message type %s, got %s", test.expected.messsageType, proposal.Message.Type())
+			if proposal.Action.Type() != test.expected.messsageType {
+				t.Errorf("Expected action type %s, got %s", test.expected.messsageType, proposal.Action.Type())
 			}
 		})
 	}
@@ -408,7 +408,7 @@ func TestInstantExecute(t *testing.T) {
 				panic: false,
 			},
 		},
-		"Unknown message type": {
+		"Unknown action type": {
 			input: testInstantExecuteInput{
 				proposalReq: tdao.unknownProposalRequest,
 				executor:    alice,
@@ -480,7 +480,7 @@ func TestAddMemberProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message: NewAddMemberMsg(&MsgAddMember{
+		Action: NewAddMemberAction(&ActionAddMember{
 			Address: bob,
 			Roles:   []string{"admin"},
 		}),
@@ -503,7 +503,7 @@ func TestAddMemberProposal(t *testing.T) {
 	proposalWithUnknownRole := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message: NewAddMemberMsg(&MsgAddMember{
+		Action: NewAddMemberAction(&ActionAddMember{
 			Address: bob,
 			Roles:   []string{"unknown"},
 		}),
@@ -528,7 +528,7 @@ func TestRemoveMemberProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewRemoveMemberMsg(bob),
+		Action:      NewRemoveMemberAction(bob),
 	})
 
 	if tdao.privdao.Members.IsMember(bob.String()) {
@@ -554,7 +554,7 @@ func TestAddRoleToUserProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewAssignRoleMsg(&MsgAssignRole{Address: bob, Role: "admin"}),
+		Action:      NewAssignRoleAction(&ActionAssignRole{Address: bob, Role: "admin"}),
 	})
 	if !tdao.privdao.Members.HasRole(bob.String(), "admin") {
 		t.Errorf("Expected member %s to have role 'admin'", bob.String())
@@ -570,7 +570,7 @@ func TestAddRoleToUserProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewAssignRoleMsg(&MsgAssignRole{Address: alice, Role: "unknown"}),
+		Action:      NewAssignRoleAction(&ActionAssignRole{Address: alice, Role: "unknown"}),
 	})
 
 	defer func() {
@@ -582,7 +582,7 @@ func TestAddRoleToUserProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewAssignRoleMsg(&MsgAssignRole{Address: carol, Role: "admin"}),
+		Action:      NewAssignRoleAction(&ActionAssignRole{Address: carol, Role: "admin"}),
 	})
 
 	defer func() {
@@ -594,7 +594,7 @@ func TestAddRoleToUserProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewAssignRoleMsg(&MsgAssignRole{Address: bob, Role: "admin"}),
+		Action:      NewAssignRoleAction(&ActionAssignRole{Address: bob, Role: "admin"}),
 	})
 }
 
@@ -617,7 +617,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 	daokit.InstantExecute(tdao.dao, daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: bob, Role: "admin"}),
+		Action:      NewUnassignRoleAction(&ActionUnassignRole{Address: bob, Role: "admin"}),
 	})
 
 	if tdao.privdao.Members.HasRole(bob.String(), "admin") {
@@ -633,7 +633,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 	proposalWithUnknowkRole := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: alice, Role: "unknown"}),
+		Action:      NewUnassignRoleAction(&ActionUnassignRole{Address: alice, Role: "unknown"}),
 	}
 	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithUnknowkRole)
@@ -647,7 +647,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 	proposalWithNonMember := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: carol, Role: "admin"}),
+		Action:      NewUnassignRoleAction(&ActionUnassignRole{Address: carol, Role: "admin"}),
 	}
 	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithNonMember)
@@ -661,7 +661,7 @@ func TestRemoveRoleFromUserProposal(t *testing.T) {
 	proposalWithNonRole := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     NewUnassignRoleMsg(&MsgUnassignRole{Address: bob, Role: "admin"}),
+		Action:      NewUnassignRoleAction(&ActionUnassignRole{Address: bob, Role: "admin"}),
 	}
 	testing.SetOriginCaller(alice)
 	daokit.InstantExecute(tdao.dao, proposalWithNonRole)
@@ -671,7 +671,7 @@ type testingDAOContext struct {
 	dao                    daokit.DAO
 	privdao                *DAOPrivate
 	mockHandlerCalled      *bool
-	mockHandler            daokit.MessageHandler
+	mockHandler            daokit.ActionHandler
 	mockProposalRequest    daokit.ProposalRequest
 	unknownProposalRequest daokit.ProposalRequest
 }
@@ -695,7 +695,7 @@ func newTestingDAO(t *testing.T, threshold float64, members []Member) *testingDA
 	pubdao, dao := New(conf)
 
 	mockHandlerCalled := false
-	mockHandler := daokit.NewMessageHandler("valid", func(_ interface{}) { mockHandlerCalled = true })
+	mockHandler := daokit.NewActionHandler("valid", func(_ interface{}) { mockHandlerCalled = true })
 	dao.Core.Resources.Set(&daokit.Resource{
 		Handler:   mockHandler,
 		Condition: daocond.MembersThreshold(0.2, dao.Members.IsMember, dao.Members.MembersCount),
@@ -704,13 +704,13 @@ func newTestingDAO(t *testing.T, threshold float64, members []Member) *testingDA
 	mockProposalRequest := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     daokit.NewMessage("valid", nil),
+		Action:      daokit.NewAction("valid", nil),
 	}
 
 	unknownProposalRequest := daokit.ProposalRequest{
 		Title:       "My Proposal",
 		Description: "My Proposal Description",
-		Message:     daokit.NewMessage("unknown", nil),
+		Action:      daokit.NewAction("unknown", nil),
 	}
 
 	return &testingDAOContext{

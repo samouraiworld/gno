@@ -40,7 +40,7 @@ type Proposal struct {
 	CreatedHeight int64
 	ProposerID    string
 	Condition     daocond.Condition
-	Message       ExecutableMessage
+	Action        Action
 	Status        ProposalStatus
 	ExecutorID    string
 	ExecutedAt    time.Time
@@ -55,7 +55,7 @@ type ProposalsStore struct {
 type ProposalRequest struct {
 	Title       string
 	Description string
-	Message     ExecutableMessage
+	Action      Action
 }
 
 func NewProposalsStore() *ProposalsStore {
@@ -72,7 +72,7 @@ func (p *ProposalsStore) newProposal(proposer string, req ProposalRequest, condi
 		Description:   req.Description,
 		ProposerID:    proposer,
 		Status:        ProposalStatusOpen,
-		Message:       req.Message,
+		Action:        req.Action,
 		Condition:     condition,
 		Votes:         map[string]daocond.Vote{},
 		CreatedAt:     time.Now(),

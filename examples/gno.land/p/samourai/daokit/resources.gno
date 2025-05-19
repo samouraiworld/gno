@@ -11,7 +11,7 @@ type ResourcesStore struct {
 
 // XXX: should condition be a pointer?
 type Resource struct {
-	Handler     MessageHandler
+	Handler     ActionHandler
 	Condition   daocond.Condition
 	DisplayName string
 	Description string

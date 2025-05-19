@@ -64,17 +64,17 @@ func (d *Core) Execute(proposalID uint64) {
 		panic("proposal does not meet the condition(s) or is already closed/executed")
 	}
 
-	d.Resources.Get(proposal.Message.Type()).Handler.Execute(proposal.Message)
+	d.Resources.Get(proposal.Action.Type()).Handler.Execute(proposal.Action)
 	proposal.Status = ProposalStatusExecuted
 	proposal.ExecutedAt = time.Now()
 }
 
 func (d *Core) Propose(proposerID string, req ProposalRequest) uint64 {
-	messageType := req.Message.Type()
+	actionType := req.Action.Type()
 
-	resource := d.Resources.Get(messageType)
+	resource := d.Resources.Get(actionType)
 	if resource == nil {
-		panic("message type is not registered as a resource")
+		panic("action type is not registered as a resource")
 	}
 
 	prop := d.Proposals.newProposal(proposerID, req, resource.Condition)

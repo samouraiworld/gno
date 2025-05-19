@@ -85,7 +85,7 @@ type DAO interface {
 }
 ```
 
-``daokit`` also provide a ``ExecutableMessage`` and ``MessageHandler`` interface used to create new resources and handlers for DAOs, discover more in the [5.]
+``daokit`` also provide an ``Action`` and ``ActionHandler`` interface used to create new resources and handlers for DAOs, discover more in the [5.]
 
 ## 3.3 role_manager
 
@@ -205,55 +205,55 @@ func Render(path string) string {
 
 There is a good chance that you will need to create custom resources for your DAO to met your need. You could also want to create custom resources for your package without being yourself a daokit consumer but to give people the ability to use your package in their DAOs.
 
-To do so, you will need to implement the ``ExecutableMessage`` and ``MessageHandler`` interface.
+To do so, you will need to implement the ``Action`` and ``ActionHandler`` interface.
 
 Here is the interfaces:
 
 ```go
-type ExecutableMessage interface {
-	String() string // return a string representation of the message
-	Type() string // return the type of the message (like a slug)
+type Action interface {
+	String() string // return a string representation of the action
+	Type() string // return the type of the action (like a slug)
 }
 
-type MessageHandler interface {
-	Execute(message ExecutableMessage) // execute the message
-	Type() string // return the type of the message (like a slug)
+type ActionHandler interface {
+	Execute(action Action) // execute the action
+	Type() string // return the type of the action (like a slug)
 }
 ```
 
-The ``daokit`` package provide a generic implementation of the ``ExecutableMessage`` and ``MessageHandler`` interface to allows users to create in a simple way their own resources. You can take a look at the [``./messages.gno``](./messages.gno) file to see how the generic implementation works.
+The ``daokit`` package provide a generic implementation of the ``Action`` and ``ActionHandler`` interface to allows users to create in a simple way their own resources. You can take a look at the [``./actions.gno``](./actions.gno) file to see how the generic implementation works.
 
 
 So to create your own resource follow these steps:
 
 ```go
 //XXX: pkg /p/samourai/blog (this package does not exist, it's just an example)
-// Think about crossing if you write the messages within realm and not package
+// Think about crossing if you write the actions within realm and not package
 
 
-// 1. Define the kind (slug) of the message, it should be unique 
-const MsgNewPostKind = "gno.land/p/samourai/blog.NewPost"
+// 1. Define the kind (slug) of the action, it should be unique 
+const ActionNewPostKind = "gno.land/p/samourai/blog.NewPost"
 
-// 2. Define the message structure (the payload of the message)
-// It should contain the data needed to execute the message
-type MsgNewPost struct {
+// 2. Define the action structure (the payload of the action)
+// It should contain the data needed to execute the action
+type ActionNewPost struct {
 	Title string
 	Content string
 }
 
-// 3. Use the generic message handler to create the factory of handlers & messages
-func NewPostHandler(blog *Blog) daokit.MessageHandler {
-	return daokit.NewMessageHandler(MsgNewPostKind, func(payload interface{}) {
-		msg, ok := payload.(*MsgNewPost)
+// 3. Use the generic action handler to create the factory of handlers & actions
+func NewPostHandler(blog *Blog) daokit.ActionHandler {
+	return daokit.NewActionHandler(ActionNewPostKind, func(payload interface{}) {
+		action, ok := payload.(*ActionNewPost)
 		if !ok {
-			panic(errors.New("invalid message type"))
+			panic(errors.New("invalid action type"))
 		}
-		blog.NewPost(msg.Title, msg.Content)
+		blog.NewPost(action.Title, action.Content)
 	})
 }
 
-func NewPostMsg(title, content string) daokit.ExecutableMessage {
-	return daokit.NewMessage(MsgNewPostKind, &MsgNewPost{
+func NewPostAction(title, content string) daokit.Action {
+	return daokit.NewAction(ActionNewPostKind, &ActionNewPost{
 		Title:   title,
 		Content: content,
 	})
@@ -285,6 +285,6 @@ func init() {
 
 ```
 
-Now as the author of the package blog, my users can easily use the blog package within their DAO without having to implement the ``ExecutableMessage`` and ``MessageHandler`` interface.
+Now as the author of the package blog, my users can easily use the blog package within their DAO without having to implement the ``Action`` and ``ActionHandler`` interface.
 
 If you want an advanced example of how to use the ``daokit`` package, you can take a look at the ``./r/samourai/samdao`` realm that is a representation of the real-world organization Samourai Coop including project management, payrolls, blog posts ...etc
