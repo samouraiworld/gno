@@ -56,7 +56,7 @@ func (c *roleThresholdCond) RenderWithVotes(votes map[string]Vote) string {
 	return s
 }
 
-// RenderJSON implements Condition.
+// RenderJSON implements ConditionJSONEncoder.
 func (c *roleThresholdCond) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":      json.StringNode("", "role-threshold"),
@@ -65,7 +65,7 @@ func (c *roleThresholdCond) RenderJSON() *json.Node {
 	})
 }
 
-// RenderJSONWithVotes implements Condition.
+// RenderJSONWithVotes implements ConditionJSONEncoder.
 func (c *roleThresholdCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":      json.StringNode("", "role-threshold"),

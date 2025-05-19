@@ -77,7 +77,7 @@ func (c *gnolovDaoCondThreshold) RenderWithVotes(votes map[string]Vote) string {
 	return s
 }
 
-// RenderJSON implements Condition.
+// RenderJSON implements ConditionJSONEncoder.
 func (c *gnolovDaoCondThreshold) RenderJSON() *json.Node {
 	return json.ObjectNode("", map[string]*json.Node{
 		"type":      json.StringNode("", "gnolovedao-threshold"),
@@ -85,7 +85,7 @@ func (c *gnolovDaoCondThreshold) RenderJSON() *json.Node {
 	})
 }
 
-// RenderJSONWithVotes implements Condition.
+// RenderJSONWithVotes implements ConditionJSONEncoder.
 func (c *gnolovDaoCondThreshold) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
 	vPowers, totalPower := c.computeVotingPowers()
 	rolePowers := []string{}

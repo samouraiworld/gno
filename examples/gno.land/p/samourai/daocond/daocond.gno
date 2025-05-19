@@ -14,7 +14,9 @@ type Condition interface {
 
 	Render() string
 	RenderWithVotes(votes map[string]Vote) string
+}
 
+type ConditionJSONEncoder interface {
 	RenderJSON() *json.Node
 	RenderJSONWithVotes(votes map[string]Vote) *json.Node
 }

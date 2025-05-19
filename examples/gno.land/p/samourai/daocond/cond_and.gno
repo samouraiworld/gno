@@ -55,7 +55,7 @@ func (c *andCond) RenderWithVotes(votes map[string]Vote) string {
 	return "[" + strings.Join(renders, " AND ") + "]"
 }
 
-// RenderJSON implements Condition.
+// RenderJSON implements ConditionJSONEncoder.
 func (c *andCond) RenderJSON() *json.Node {
 	conditionsArray := make([]*json.Node, len(c.conditions))
 	for i, condition := range c.conditions {
@@ -67,7 +67,7 @@ func (c *andCond) RenderJSON() *json.Node {
 	})
 }
 
-// RenderJSONWithVotes implements Condition.
+// RenderJSONWithVotes implements ConditionJSONEncoder.
 func (c *andCond) RenderJSONWithVotes(votes map[string]Vote) *json.Node {
 	conditionsArray := make([]*json.Node, len(c.conditions))
 	for i, condition := range c.conditions {
