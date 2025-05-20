@@ -282,13 +282,17 @@ func TestEval(t *testing.T) {
 				dao.addUser(userID, []string{"T3"})
 				votes[userID] = vote
 			}
+			ballot := NewBallot()
+			for userId, vote := range votes {
+				ballot.Vote(userId, vote)
+			}
 			roles := []string{"T1", "T2"}
 			if !tdata.abstainT3 {
 				roles = append(roles, "T3")
 			}
 			cond := GnoloveDAOCondThreshold(tdata.threshold, roles, dao.hasRole, dao.usersWithRoleCount)
 			// Get percent of total yes
-			urequire.Equal(t, tdata.expectedEval, cond.Eval(votes))
+			urequire.Equal(t, tdata.expectedEval, cond.Eval(ballot))
 		})
 	}
 }

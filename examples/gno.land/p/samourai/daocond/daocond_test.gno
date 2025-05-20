@@ -160,19 +160,19 @@ func TestEval(t *testing.T) {
 				resource, ok := dao.resources[tc.resource]
 				urequire.True(t, ok)
 
-				ballots := map[string]daocond.Vote{}
+				ballot := daocond.NewBallot()
 				for _, phase := range tc.phases {
 					if phase.changes != nil {
 						phase.changes(dao)
 					}
 					if phase.votes != nil {
 						for memberId, vote := range phase.votes {
-							ballots[memberId] = vote
+							ballot.Vote(memberId, vote)
 						}
 					}
-					result := resource.Eval(ballots)
+					result := resource.Eval(ballot)
 					if phase.result != result {
-						println("State:", resource.RenderWithVotes(ballots))
+						println("State:", resource.RenderWithVotes(ballot))
 					}
 					urequire.Equal(t, phase.result, result)
 				}
