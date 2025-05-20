@@ -1,4 +1,4 @@
-package daokit_demo
+package daodemo
 
 import "testing"
 

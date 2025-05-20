@@ -1,4 +1,4 @@
-package daokit_demo
+package daodemo
 
 // This is the most basic example of a DAO using DAOKIT.
 // It is a simple DAO that has a single admin role and a single public-relationships role.
