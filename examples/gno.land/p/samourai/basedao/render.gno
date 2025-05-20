@@ -184,7 +184,7 @@ func (d *DAOPrivate) ConfigRolesView() string {
 	s += ufmt.Sprintf("## Roles 🏷️\n\n")
 	for _, role := range roles {
 		s += ufmt.Sprintf("- %s\n\n", role)
-		info := d.Members.RoleManager.RoleInfo(role)
+		info := d.Members.RoleInfo(role)
 		s += ufmt.Sprintf("  %s\n\n", info.Description)
 	}
 	s += ufmt.Sprintf("\n--------------------------------\n")

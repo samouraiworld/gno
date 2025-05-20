@@ -2,7 +2,7 @@
 
 A **Decentralized Autonomous Organization (DAO)** is a self-governing entity that operates through smart contracts, enabling transparent decision-making without centralized control.
 
-Daokit is a gnolang package for creating complex DAO models. It introduces a new framework based conditions. BaseDAO is an extension of DAOkit that handles the members & roles through role manager pkg.
+Daokit is a gnolang package for creating complex DAO models. It introduces a new framework based conditions. BaseDAO is an extension of DAOkit that handles the members & roles.
 
 # 2. Why daokit ?
 
@@ -56,7 +56,7 @@ type Condition interface {
 
 A condition does not handle the voting process & storage, it only evaluate if the condition is met based on the votes.
 
-We have conditions for membertreshold, roles treshold, roles count ...etc
+We have conditions for members treshold, roles treshold, roles count ...etc
 
 ```go
 func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, membersCountFn func() uint64) Condition
@@ -100,31 +100,9 @@ type DAO interface {
 
 ``daokit`` also provide an ``Action`` and ``ActionHandler`` interface used to create new resources and handlers for DAOs, discover more in the [5. Create Custom Resources](#5-create-custom-resources) section.
 
-## 3.3 role_manager
+## 3.3 basedao
 
-``role_manager`` is a package that returns a role manager that can be used to attach roles to users and manage them.
-
-Here is the ``RoleManager`` and ``Role`` structure:
-
-```go
-type RoleManager struct {
-	roles *avl.Tree // role name -> Role
-	users *avl.Tree // user addr -> role[]
-}
-
-type Role struct {
-	name        string
-	description string
-	permissions *avl.Tree // permission -> struct{}
-	users       *avl.Tree // user addr -> struct{}
-}
-```
-
-The ``permissions`` field is an old artefact of the role manager, but it's not used in our current implementation.
-
-## 3.4 basedao
-
-``basedao`` is a wrapper around daokit that handles the memberstore thanks to the role manager. It also provider the rendering and create some basic resources like add/remove member, add/remove role, etc.
+``basedao`` is a wrapper around daokit that handles the memberstore. The memberstore is a structure that includes few methods to handle the members and the roles. It also provider the rendering and create some basic resources like add/remove member, add/remove role, etc.
 
 ``basedao`` split the DAO in two structures, the ``DAOPrivate`` and the ``daoPublic``.
 The difference is that the ``DAOPrivate`` is meant to be used internally by the DAO and not exposed to the outside. By accessing the ``DAOPrivate`` you could modify the DAO core, the memberstore or everything in the DAO. The ``daoPublic`` is the public part of the DAO, it's the part that will be exposed to the outside.
@@ -167,7 +145,6 @@ import (
 	"gno.land/p/samourai/basedao"
 	"gno.land/p/samourai/daocond"
 	"gno.land/p/samourai/daokit"
-	"gno.land/p/samourai/role_manager"
 	"gno.land/r/demo/profile"
 )
 
@@ -177,7 +154,7 @@ var (
 )
 
 func init() {
-	initialRoles := []role_manager.RoleInfo{
+	initialRoles := []basedao.RoleInfo{
 		{Name: "admin", Description: "Admin is the superuser"},
 		{Name: "public-relationships", Description: "Responsible of communication with the public"},
 		{Name: "finance-officer", Description: "Responsible of funds management"},

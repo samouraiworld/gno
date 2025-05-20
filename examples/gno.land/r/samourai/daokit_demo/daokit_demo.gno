@@ -8,7 +8,6 @@ import (
 	"gno.land/p/samourai/basedao"
 	"gno.land/p/samourai/daocond"
 	"gno.land/p/samourai/daokit"
-	"gno.land/p/samourai/role_manager"
 	"gno.land/r/demo/profile"
 )
 
@@ -19,7 +18,7 @@ var (
 
 // TODO: add a little bit more complexity to show daocond initialization
 func init() {
-	initialRoles := []role_manager.RoleInfo{
+	initialRoles := []basedao.RoleInfo{
 		{Name: "admin", Description: "Admin is the superuser"},
 		{Name: "public-relationships", Description: "Responsible of communication with the public"},
 		{Name: "finance-officer", Description: "Responsible of funds management"},
