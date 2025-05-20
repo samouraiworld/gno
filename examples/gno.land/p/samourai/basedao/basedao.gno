@@ -52,10 +52,6 @@ type ProfileStringGetter func(addr std.Address, field string, def string) string
 
 const EventBaseDAOCreated = "BaseDAOCreated"
 
-func emitBaseDAOCreated() {
-	std.Emit(EventBaseDAOCreated)
-}
-
 func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 	// XXX: emit events from memberstore
 
@@ -133,7 +129,7 @@ func New(conf *Config) (daokit.DAO, *DAOPrivate) {
 	}
 
 	if !conf.NoCreationEvent {
-		emitBaseDAOCreated()
+		std.Emit(EventBaseDAOCreated)
 	}
 
 	return &daoPublic{impl: dao}, dao
