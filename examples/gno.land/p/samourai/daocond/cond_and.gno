@@ -1,7 +1,6 @@
 package daocond
 
 import (
-	"math"
 	"strings"
 )
 
@@ -28,11 +27,11 @@ func (c *andCond) Eval(votes map[string]Vote) bool {
 
 // Signal implements Condition.
 func (c *andCond) Signal(votes map[string]Vote) float64 {
-	minSignal := 1.0
+	totalSignal := 0.0
 	for _, condition := range c.conditions {
-		minSignal = math.Min(minSignal, condition.Signal(votes))
+		totalSignal += condition.Signal(votes)
 	}
-	return minSignal
+	return totalSignal / float64(len(c.conditions))
 }
 
 // Render implements Condition.
