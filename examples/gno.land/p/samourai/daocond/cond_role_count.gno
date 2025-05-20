@@ -31,13 +31,13 @@ func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role s
 }
 
 // Eval implements Condition.
-func (c *roleCountCond) Eval(votes map[string]Vote) bool {
-	return c.totalYes(votes) >= c.count
+func (c *roleCountCond) Eval(ballot Ballot) bool {
+	return c.totalYes(ballot) >= c.count
 }
 
 // Signal implements Condition.
-func (c *roleCountCond) Signal(votes map[string]Vote) float64 {
-	return math.Min(float64(c.totalYes(votes))/float64(c.count), 1)
+func (c *roleCountCond) Signal(ballot Ballot) float64 {
+	return math.Min(float64(c.totalYes(ballot))/float64(c.count), 1)
 }
 
 // Render implements Condition.
@@ -46,25 +46,25 @@ func (c *roleCountCond) Render() string {
 }
 
 // RenderWithVotes implements Condition.
-func (c *roleCountCond) RenderWithVotes(votes map[string]Vote) string {
+func (c *roleCountCond) RenderWithVotes(ballot Ballot) string {
 	s := ""
 	s += ufmt.Sprintf("to meet the condition, %d members with role %s must vote yes\n\n", c.count, c.role)
-	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.totalYes(votes), c.count)
+	s += ufmt.Sprintf("Yes: %d/%d\n\n", c.totalYes(ballot), c.count)
 	return s
 }
 
 var _ Condition = (*roleCountCond)(nil)
 
-func (c *roleCountCond) totalYes(votes map[string]Vote) uint64 {
+func (c *roleCountCond) totalYes(ballot Ballot) uint64 {
 	totalYes := uint64(0)
-	for userId, vote := range votes {
+	ballot.Iterate(func(voter string, vote Vote) {
 		if vote != VoteYes {
-			continue
+			return
 		}
-		if !c.hasRoleFn(userId, c.role) {
-			continue
+		if !c.hasRoleFn(voter, c.role) {
+			return
 		}
 		totalYes += 1
-	}
+	})
 	return totalYes
 }

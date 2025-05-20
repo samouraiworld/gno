@@ -33,13 +33,13 @@ func RoleThreshold(threshold float64, role string, hasRoleFn func(memberId strin
 }
 
 // Eval implements Condition.
-func (c *roleThresholdCond) Eval(votes map[string]Vote) bool {
-	return c.yesRatio(votes) >= c.threshold
+func (c *roleThresholdCond) Eval(ballot Ballot) bool {
+	return c.yesRatio(ballot) >= c.threshold
 }
 
 // Signal implements Condition.
-func (c *roleThresholdCond) Signal(votes map[string]Vote) float64 {
-	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+func (c *roleThresholdCond) Signal(ballot Ballot) float64 {
+	return math.Min(c.yesRatio(ballot)/c.threshold, 1)
 }
 
 // Render implements Condition.
@@ -48,29 +48,29 @@ func (c *roleThresholdCond) Render() string {
 }
 
 // RenderWithVotes implements Condition.
-func (c *roleThresholdCond) RenderWithVotes(votes map[string]Vote) string {
+func (c *roleThresholdCond) RenderWithVotes(ballot Ballot) string {
 	s := ""
 	s += ufmt.Sprintf("To meet the condition, %g%% of %s members with role %s must vote yes\n\n", c.threshold*100, c.role)
-	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(votes), c.usersRoleCountFn(c.role), c.yesRatio(votes)*100)
+	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(ballot), c.usersRoleCountFn(c.role), c.yesRatio(ballot)*100)
 	return s
 }
 
 var _ Condition = (*roleThresholdCond)(nil)
 
-func (c *roleThresholdCond) yesRatio(votes map[string]Vote) float64 {
-	return float64(c.totalYes(votes)) / float64(c.usersRoleCountFn(c.role))
+func (c *roleThresholdCond) yesRatio(ballot Ballot) float64 {
+	return float64(c.totalYes(ballot)) / float64(c.usersRoleCountFn(c.role))
 }
 
-func (c *roleThresholdCond) totalYes(votes map[string]Vote) uint32 {
+func (c *roleThresholdCond) totalYes(ballot Ballot) uint32 {
 	totalYes := uint32(0)
-	for userId, vote := range votes {
+	ballot.Iterate(func(voter string, vote Vote) {
 		if vote != VoteYes {
-			continue
+			return
 		}
-		if !c.hasRoleFn(userId, c.role) {
-			continue
+		if !c.hasRoleFn(voter, c.role) {
+			return
 		}
 		totalYes += 1
-	}
+	})
 	return totalYes
 }

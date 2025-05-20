@@ -315,7 +315,7 @@ func (d *DAOPrivate) ProposalDetailView(idu uint64) string {
 	}
 	s += ufmt.Sprintf("> proposed by %s 👤\n\n", proposal.ProposerID)
 	s += ufmt.Sprintf("\n--------------------------------\n")
-	s += ufmt.Sprintf("## Votes 🗳️\n\n%s\n\n", proposal.Condition.RenderWithVotes(proposal.Votes))
+	s += ufmt.Sprintf("## Votes 🗳️\n\n%s\n\n", proposal.Condition.RenderWithVotes(proposal.Ballot))
 	s += ufmt.Sprintf("\n--------------------------------\n")
 	return s
 }

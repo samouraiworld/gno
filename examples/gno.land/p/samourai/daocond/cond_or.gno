@@ -17,9 +17,9 @@ func Or(conditions ...Condition) Condition {
 }
 
 // Eval implements Condition.
-func (c *orCond) Eval(votes map[string]Vote) bool {
+func (c *orCond) Eval(ballot Ballot) bool {
 	for _, condition := range c.conditions {
-		if condition.Eval(votes) {
+		if condition.Eval(ballot) {
 			return true
 		}
 	}
@@ -27,10 +27,10 @@ func (c *orCond) Eval(votes map[string]Vote) bool {
 }
 
 // Signal implements Condition.
-func (c *orCond) Signal(votes map[string]Vote) float64 {
+func (c *orCond) Signal(ballot Ballot) float64 {
 	maxSignal := 0.0
 	for _, condition := range c.conditions {
-		maxSignal = math.Max(maxSignal, condition.Signal(votes))
+		maxSignal = math.Max(maxSignal, condition.Signal(ballot))
 	}
 	return maxSignal
 }
@@ -45,10 +45,10 @@ func (c *orCond) Render() string {
 }
 
 // RenderWithVotes implements Condition.
-func (c *orCond) RenderWithVotes(votes map[string]Vote) string {
+func (c *orCond) RenderWithVotes(ballot Ballot) string {
 	renders := []string{}
 	for _, condition := range c.conditions {
-		renders = append(renders, condition.RenderWithVotes(votes))
+		renders = append(renders, condition.RenderWithVotes(ballot))
 	}
 	return "[" + strings.Join(renders, " OR ") + "]"
 }

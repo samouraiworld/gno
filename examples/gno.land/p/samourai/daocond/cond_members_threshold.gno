@@ -31,13 +31,13 @@ func MembersThreshold(threshold float64, isMemberFn func(memberId string) bool, 
 }
 
 // Eval implements Condition.
-func (c *membersThresholdCond) Eval(votes map[string]Vote) bool {
-	return c.yesRatio(votes) >= c.threshold
+func (c *membersThresholdCond) Eval(ballot Ballot) bool {
+	return c.yesRatio(ballot) >= c.threshold
 }
 
 // Signal implements Condition.
-func (c *membersThresholdCond) Signal(votes map[string]Vote) float64 {
-	return math.Min(c.yesRatio(votes)/c.threshold, 1)
+func (c *membersThresholdCond) Signal(ballot Ballot) float64 {
+	return math.Min(c.yesRatio(ballot)/c.threshold, 1)
 }
 
 // Render implements Condition.
@@ -46,29 +46,29 @@ func (c *membersThresholdCond) Render() string {
 }
 
 // RenderWithVotes implements Condition.
-func (c *membersThresholdCond) RenderWithVotes(votes map[string]Vote) string {
+func (c *membersThresholdCond) RenderWithVotes(ballot Ballot) string {
 	s := ""
 	s += ufmt.Sprintf("to meet the condition, %g%% of members must vote yes\n\n", c.threshold*100)
-	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(votes), c.membersCountFn(), c.yesRatio(votes)*100)
+	s += ufmt.Sprintf("Yes: %d/%d = %g%%\n\n", c.totalYes(ballot), c.membersCountFn(), c.yesRatio(ballot)*100)
 	return s
 }
 
 var _ Condition = (*membersThresholdCond)(nil)
 
-func (c *membersThresholdCond) yesRatio(votes map[string]Vote) float64 {
-	return float64(c.totalYes(votes)) / float64(c.membersCountFn())
+func (c *membersThresholdCond) yesRatio(ballot Ballot) float64 {
+	return float64(c.totalYes(ballot)) / float64(c.membersCountFn())
 }
 
-func (c *membersThresholdCond) totalYes(votes map[string]Vote) uint64 {
+func (c *membersThresholdCond) totalYes(ballot Ballot) uint64 {
 	totalYes := uint64(0)
-	for userId, vote := range votes {
+	ballot.Iterate(func(voter string, vote Vote) {
 		if vote != VoteYes {
-			continue
+			return
 		}
-		if !c.isMemberFn(userId) {
-			continue
+		if !c.isMemberFn(voter) {
+			return
 		}
 		totalYes += 1
-	}
+	})
 	return totalYes
 }

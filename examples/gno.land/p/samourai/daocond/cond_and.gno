@@ -16,9 +16,9 @@ func And(conditions ...Condition) Condition {
 }
 
 // Eval implements Condition.
-func (c *andCond) Eval(votes map[string]Vote) bool {
+func (c *andCond) Eval(ballot Ballot) bool {
 	for _, condition := range c.conditions {
-		if !condition.Eval(votes) {
+		if !condition.Eval(ballot) {
 			return false
 		}
 	}
@@ -26,10 +26,10 @@ func (c *andCond) Eval(votes map[string]Vote) bool {
 }
 
 // Signal implements Condition.
-func (c *andCond) Signal(votes map[string]Vote) float64 {
+func (c *andCond) Signal(ballot Ballot) float64 {
 	totalSignal := 0.0
 	for _, condition := range c.conditions {
-		totalSignal += condition.Signal(votes)
+		totalSignal += condition.Signal(ballot)
 	}
 	return totalSignal / float64(len(c.conditions))
 }
@@ -44,10 +44,10 @@ func (c *andCond) Render() string {
 }
 
 // RenderWithVotes implements Condition.
-func (c *andCond) RenderWithVotes(votes map[string]Vote) string {
+func (c *andCond) RenderWithVotes(ballot Ballot) string {
 	renders := []string{}
 	for _, condition := range c.conditions {
-		renders = append(renders, condition.RenderWithVotes(votes))
+		renders = append(renders, condition.RenderWithVotes(ballot))
 	}
 	return "[" + strings.Join(renders, " AND ") + "]"
 }

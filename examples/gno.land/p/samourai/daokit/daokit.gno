@@ -41,8 +41,7 @@ func (d *Core) Vote(voterID string, proposalID uint64, vote daocond.Vote) {
 		panic("proposal is not open")
 	}
 
-	proposal.Votes[voterID] = daocond.Vote(vote)
-
+	proposal.Ballot.Vote(voterID, daocond.Vote(vote))
 }
 
 func (d *Core) Execute(proposalID uint64) {
@@ -55,7 +54,7 @@ func (d *Core) Execute(proposalID uint64) {
 		panic("proposal is not open")
 	}
 
-	if !proposal.Condition.Eval(proposal.Votes) {
+	if !proposal.Condition.Eval(proposal.Ballot) {
 		panic("proposal condition is not met")
 	}
 

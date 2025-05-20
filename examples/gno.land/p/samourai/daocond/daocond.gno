@@ -5,11 +5,19 @@ package daocond
 // In future, we should probably add a stateful model for large DAOs with many voters.
 
 type Condition interface {
-	Eval(votes map[string]Vote) bool
-	Signal(votes map[string]Vote) float64
+	Eval(ballot Ballot) bool
+	Signal(ballot Ballot) float64
 
 	Render() string
-	RenderWithVotes(votes map[string]Vote) string
+	RenderWithVotes(ballot Ballot) string
+}
+
+type Ballot interface {
+	Vote(voter string, vote Vote)
+	Get(voter string) Vote
+	Total() int
+
+	Iterate(fn func(voter string, vote Vote))
 }
 
 type Vote string

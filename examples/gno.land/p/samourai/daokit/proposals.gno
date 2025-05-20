@@ -44,7 +44,7 @@ type Proposal struct {
 	Status        ProposalStatus
 	ExecutorID    string
 	ExecutedAt    time.Time
-	Votes         map[string]daocond.Vote
+	Ballot        daocond.Ballot
 }
 
 type ProposalsStore struct {
@@ -74,7 +74,7 @@ func (p *ProposalsStore) newProposal(proposer string, req ProposalRequest, condi
 		Status:        ProposalStatusOpen,
 		Action:        req.Action,
 		Condition:     condition,
-		Votes:         map[string]daocond.Vote{},
+		Ballot:        daocond.NewBallot(),
 		CreatedAt:     time.Now(),
 		CreatedHeight: std.ChainHeight(),
 	}
@@ -92,7 +92,7 @@ func (p *ProposalsStore) GetProposal(id uint64) *Proposal {
 }
 
 func (p *Proposal) UpdateStatus() {
-	conditionsAreMet := p.Condition.Eval(p.Votes)
+	conditionsAreMet := p.Condition.Eval(p.Ballot)
 	if p.Status == ProposalStatusOpen && conditionsAreMet {
 		p.Status = ProposalStatusPassed
 	}
@@ -114,7 +114,7 @@ func (p *ProposalsStore) GetProposalsJSON() string {
 			"proposer":    json.StringNode("", prop.ProposerID),
 			"status":      json.StringNode("", prop.Status.String()),
 			"startHeight": json.NumberNode("", float64(prop.CreatedHeight)),
-			"signal":      json.NumberNode("", prop.Condition.Signal(prop.Votes)),
+			"signal":      json.NumberNode("", prop.Condition.Signal(prop.Ballot)),
 		}))
 		return false
 	})
