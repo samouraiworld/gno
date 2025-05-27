@@ -45,22 +45,33 @@ DAOkit framework is composed of three packages:
 
 `daocond` provides a stateless condition engine used to evaluate if a proposal should be executed.
 
-### Interface
+### 3.1.1 Interface
 ```go
 type Condition interface {
 	// Eval checks if the condition is satisfied based on current votes.
-	Eval(votes map[string]Vote) bool
+	Eval(ballot Ballot) bool
 	// Signal returns a value from 0.0 to 1.0 to indicate how close the condition is to being met.
-	Signal(votes map[string]Vote) float64
+	Signal(ballot Ballot) float64
 
 	// Render returns a static human-readable representation of the condition.
 	Render() string
 	// RenderWithVotes returns a dynamic representation with vote context included.
-	RenderWithVotes(votes map[string]Vote) string
+	RenderWithVotes(ballot Ballot) string
+}
+
+type Ballot interface {
+	// Vote allows a user to vote on a proposal.
+	Vote(voter string, vote Vote)
+	// Get returns the vote of a user.
+	Get(voter string) Vote
+	// Total returns the total number of votes.
+	Total() int
+	// Iterate iterates over all votes, similar as avl.Tree.Iterate.
+	Iterate(fn func(voter string, vote Vote) bool)
 }
 ```
 
-### Built-in Conditions
+### 3.1.2 Built-in Conditions
 `daocond` provides several built-in conditions to cover common governance scenarios.
 
 ```go
@@ -74,7 +85,7 @@ func RoleThreshold(threshold float64, role string, hasRoleFn func(memberId strin
 func RoleCount(count uint64, role string, hasRoleFn func(memberId string, role string) bool) Condition
 ```
 
-### Logical Composition
+### 3.1.3 Logical Composition
 You can combine multiple conditions to create complex governance rules using logical operators:
 
 ```go
@@ -99,7 +110,7 @@ Conditions are stateless for flexibility and scalability.
 
 `daokit` provides the core mechanics:
 
-### Core Structure:
+### 3.2.1 Core Structure:
 It's the central component of a DAO, responsible for managing both available resources that can be executed and the proposals.
 ```go
 type Core struct {
@@ -108,7 +119,7 @@ type Core struct {
 }
 ```
 
-### DAO Interface:
+### 3.2.2 DAO Interface:
 The interface defines the external functions that users or other modules interact with. It abstracts the core governance flow: proposing, voting, and executing.
 ```go
 type DAO interface {
@@ -117,9 +128,9 @@ type DAO interface {
 	Execute(id uint64)
 }
 ```
-> [Code Example of a Basic DAO](#4-code-example-of-a-basic-dao)
+> 📖 [Code Example of a Basic DAO](#4-code-example-of-a-basic-dao)
 
-### Proposal Lifecycle
+### 3.2.3 Proposal Lifecycle
 
 Each proposal goes through the following states:
 
@@ -142,7 +153,7 @@ Each proposal goes through the following states:
 `basedao` extends `daokit` to handle members and roles management.
 It handles who can participate in a DAO and what permissions they have.
 
-### Core Types
+### 3.3.1 Core Types
 ```go
 type MembersStore struct {
 	Roles   *avl.Tree 
@@ -150,7 +161,7 @@ type MembersStore struct {
 }
 ```
 
-### Initialize the DAO
+### 3.3.2 Initialize the DAO
 Create a `MembersStore` structure to initialize the DAO with predefined roles and members.
 
 ```go
@@ -167,7 +178,7 @@ members := []basedao.Member{
 store := basedao.NewMembersStore(roles, members)
 ```
 
-### Example Usage
+### 3.3.3 Example Usage
 ```go
 store := basedao.NewMembersStore(nil, nil)
 
@@ -185,18 +196,18 @@ hasRole := store.HasRole("g1alice...", "editor") // "Is Alice an editor?"
 members := store.GetMembersJSON() // "All Members (JSON):"
 ```
 
-### Creating a DAO:
+### 3.3.4 Creating a DAO:
 
 ```go
 func New(conf *Config) (daokit.DAO, *DAOPrivate)
 ```
 
-#### Key Structures:
+#### 3.3.4.1 Key Structures:
 - `DAOPrivate`: Full access to internal DAO state
 - `daokit.DAO`: External interface for DAO interaction
 
 
-### Configuration:
+### 3.3.5 Configuration:
 ```go
 type Config struct {
 	Name              string
@@ -285,8 +296,8 @@ To add new behavior to your DAO — or to enable others to integrate your packag
 
 ```go
 type Action interface {
-	Type() string // return the type of the action. e.g.: "gno.land/p/samourai/blog"
-	String() string // return stringify content of the action. e.g. for a payload: > {title: "Title", content: "Content"}
+	Type() string // return the type of the action. e.g.: "gno.land/p/samourai/blog.NewPost"
+	String() string // return stringify content of the action
 }
 
 type ActionHandler interface {
@@ -295,10 +306,6 @@ type ActionHandler interface {
 }
 ```
 This allows DAOs to execute arbitrary logic or interact with Gno packages through governance-approved decisions.
-
-``daokit`` provide a generic implementation of ``Action`` and ``ActionHandler``, available at the [``./actions.gno``](./actions.gno) file.
-
-// TODO Add an example of implementation
 
 ## Steps to Add a Custom Resource:
 1. Define the path of the action, it should be unique 
