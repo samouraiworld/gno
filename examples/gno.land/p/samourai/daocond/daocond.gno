@@ -17,7 +17,7 @@ type Ballot interface {
 	Get(voter string) Vote
 	Total() int
 
-	Iterate(fn func(voter string, vote Vote))
+	Iterate(fn func(voter string, vote Vote) bool)
 }
 
 type Vote string

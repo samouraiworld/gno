@@ -32,13 +32,12 @@ func (b *BallotAVL) Total() int {
 }
 
 // Implements Ballot interface
-func (b *BallotAVL) Iterate(fn func(voter string, vote Vote)) {
+func (b *BallotAVL) Iterate(fn func(voter string, vote Vote) bool) {
 	b.tree.Iterate("", "", func(key string, value interface{}) bool {
 		v, ok := value.(Vote)
 		if !ok {
 			return false
 		}
-		fn(key, v)
-		return false
+		return fn(key, v)
 	})
 }

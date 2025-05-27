@@ -61,14 +61,11 @@ func (c *membersThresholdCond) yesRatio(ballot Ballot) float64 {
 
 func (c *membersThresholdCond) totalYes(ballot Ballot) uint64 {
 	totalYes := uint64(0)
-	ballot.Iterate(func(voter string, vote Vote) {
-		if vote != VoteYes {
-			return
+	ballot.Iterate(func(voter string, vote Vote) bool {
+		if vote == VoteYes && c.isMemberFn(voter) {
+			totalYes += 1
 		}
-		if !c.isMemberFn(voter) {
-			return
-		}
-		totalYes += 1
+		return false
 	})
 	return totalYes
 }

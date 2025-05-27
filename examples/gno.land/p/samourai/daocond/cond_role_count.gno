@@ -57,14 +57,11 @@ var _ Condition = (*roleCountCond)(nil)
 
 func (c *roleCountCond) totalYes(ballot Ballot) uint64 {
 	totalYes := uint64(0)
-	ballot.Iterate(func(voter string, vote Vote) {
-		if vote != VoteYes {
-			return
+	ballot.Iterate(func(voter string, vote Vote) bool {
+		if vote == VoteYes && c.hasRoleFn(voter, c.role) {
+			totalYes += 1
 		}
-		if !c.hasRoleFn(voter, c.role) {
-			return
-		}
-		totalYes += 1
+		return false
 	})
 	return totalYes
 }

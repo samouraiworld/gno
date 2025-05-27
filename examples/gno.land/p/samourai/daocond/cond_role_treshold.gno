@@ -63,14 +63,11 @@ func (c *roleThresholdCond) yesRatio(ballot Ballot) float64 {
 
 func (c *roleThresholdCond) totalYes(ballot Ballot) uint32 {
 	totalYes := uint32(0)
-	ballot.Iterate(func(voter string, vote Vote) {
-		if vote != VoteYes {
-			return
+	ballot.Iterate(func(voter string, vote Vote) bool {
+		if vote == VoteYes && c.hasRoleFn(voter, c.role) {
+			totalYes += 1
 		}
-		if !c.hasRoleFn(voter, c.role) {
-			return
-		}
-		totalYes += 1
+		return false
 	})
 	return totalYes
 }

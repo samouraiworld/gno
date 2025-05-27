@@ -86,12 +86,13 @@ func (c *gnolovDaoCondThreshold) yesRatio(ballot Ballot) float64 {
 		return totalPower
 	}
 
-	ballot.Iterate(func(voter string, vote Vote) {
+	ballot.Iterate(func(voter string, vote Vote) bool {
 		if vote != VoteYes {
-			return
+			return false
 		}
 		tier := c.getUserRole(voter)
 		totalYes += votingPowersByTier[tier]
+		return false
 	})
 	return totalYes / totalPower
 }
