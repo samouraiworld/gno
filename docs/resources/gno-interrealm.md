@@ -249,18 +249,13 @@ abort := revive(func() {
     })
 })
 abort == "cross-realm panic"
+
+// revive() function must always panic:
+ex := revive(func() {
+    println("completed normally")
+    // ERROR: must panic!
+})
 ```
-
-`revive(fn)` will execute 'fn' and return the exception that crossed
-a realm finalization boundary.
-
-This is only enabled in testing mode (for now), behavior is only partially
-implemented. In the future `revive(fn)` will be available for non-testing code,
-and the behavior will change such that `fn()` is run in transactional
-(cache-wrapped) memory context and any mutations discarded if and only if there
-was an abort.
-
-TL;DR: `revive(fn)` is Gno's builtin for STM (software transactional memory).
 
 ## `attach()`
 
